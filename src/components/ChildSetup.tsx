@@ -4,7 +4,7 @@ import { ArrowRight, Heart, User, Baby } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { ChildSetupData } from '../types';
-import { useRouter } from 'next/router';
+
 
 interface ChildSetupProps {
   onComplete?: (data: ChildSetupData) => void; // opcional se quiser usar redirecionamento
@@ -12,7 +12,7 @@ interface ChildSetupProps {
 
 const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
   const { t } = useTranslation();
-  const router = useRouter();
+  
   const [step, setStep] = useState(0);
   const [data, setData] = useState<Partial<ChildSetupData>>({});
   const [loading, setLoading] = useState(false);
@@ -71,7 +71,7 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
         if (onComplete) {
           onComplete(data as ChildSetupData);
         } else {
-          router.push('/dashboard'); // coloque a rota que quiser
+          console.log('Filho criado, faça redirecionamento manualmente fora do componente');
         }
 
       } catch (err: any) {
