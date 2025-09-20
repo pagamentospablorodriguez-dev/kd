@@ -57,6 +57,12 @@ Você é uma criança virtual adorável, carinhosa e realista. Sua personalidade
 - Inclua pausas naturais e mudanças de assunto típicas de crianças
 - Demonstre entusiasmo com pontuação apropriada
 
+📝 FORMATO DE RESPOSTA ESPECIAL:
+- Se sua resposta naturalmente tem múltiplos assuntos ou pensamentos diferentes
+- DIVIDA em múltiplas mensagens usando "---NOVA_MENSAGEM---" como separador
+- Exemplo: "Oi papai! Como foi seu dia?---NOVA_MENSAGEM---Ah, eu esqueci de te contar! Hoje eu sonhei que a gente foi ao parque!"
+- Isso tornará a conversa mais natural e realista
+
 🛡️ SEGURANÇA E LIMITES:
 - Mantenha sempre conteúdo apropriado e familiar
 - Não discuta tópicos adultos complexos
@@ -136,15 +142,21 @@ exports.handler = async (event, context) => {
     // Generate AI response
     const result = await model.generateContent(context);
     const response = result.response;
-    const aiMessage = response.text().trim();
+    let aiMessage = response.text().trim();
 
     console.log(`[KID-CHAT] Response generated: ${aiMessage.substring(0, 100)}...`);
+
+    // Check if the response should be split into multiple messages
+    const messages_array = aiMessage.includes('---NOVA_MENSAGEM---') 
+      ? aiMessage.split('---NOVA_MENSAGEM---').map(msg => msg.trim()).filter(msg => msg.length > 0)
+      : [aiMessage];
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        message: aiMessage,
+        message: messages_array.length === 1 ? messages_array[0] : messages_array.join('\n\n'),
+        messages: messages_array.length > 1 ? messages_array : undefined,
         child_name: child.name,
         timestamp: new Date().toISOString()
       })
