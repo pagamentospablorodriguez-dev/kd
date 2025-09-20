@@ -61,7 +61,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       clearTimeout(waitingTimeoutRef.current);
     }
 
-    // Wait 3 seconds for more messages
+    // Wait 5 seconds for more messages (increased from 3)
     waitingTimeoutRef.current = setTimeout(async () => {
       const allMessages = [...pendingMessages, messageToSend];
       setPendingMessages([]);
@@ -76,7 +76,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       } catch (error) {
         console.error('Error sending message:', error);
       }
-    }, 3000);
+    }, 5000); // Increased to 5 seconds
   }, [inputValue, isLoading, isInitialState, onFirstMessage, pendingMessages, sendMessage, sendMultipleMessages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -241,7 +241,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <p className="text-lg sm:text-xl text-gray-600 font-semibold mb-2">
               {t('landing.subtitle')}
             </p>
-            <p className="text-gray-500 text-sm sm:text-base mb-3">
+            <p className="text-gray-500 text-sm sm:text-base mb-3 leading-relaxed max-w-2xl mx-auto">
               {t('landing.description')}
             </p>
             <div className="flex items-center justify-center gap-2 mb-2">
@@ -373,7 +373,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <div className="flex flex-col h-full relative pt-20">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 pb-24 space-y-2">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 pb-32 space-y-2">
         <AnimatePresence>
           {messages.map((message, index) => (
             <MessageBubble key={`${message.id}-${index}`} message={message} index={index} />
@@ -409,62 +409,63 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Fixed Input */}
+      {/* Fixed Input - Properly positioned */}
       <motion.div
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed bottom-0 left-0 right-0 p-4 bg-white/98 backdrop-blur-xl border-t border-gray-200/50 z-50 shadow-2xl"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
+        className="fixed bottom-0 left-0 right-0 bg-white/98 backdrop-blur-xl border-t border-gray-200/50 z-50 shadow-2xl safe-area-bottom"
       >
-        <form onSubmit={handleSubmit} className="relative max-w-4xl mx-auto">
-          <div className="flex items-end gap-3">
-            <div className="flex-1 relative">
-              <textarea
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder={t('chat.placeholder')}
-                className="w-full px-4 py-3 border border-gray-200 bg-white/90 backdrop-blur-sm rounded-xl resize-none focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 min-h-[48px] max-h-[120px] text-gray-800 placeholder-gray-400 transition-all duration-300"
-                rows={1}
-                disabled={isLoading || isWaitingForMore}
-              />
+        <div className="p-4 max-w-4xl mx-auto">
+          <form onSubmit={handleSubmit} className="relative">
+            <div className="flex items-end gap-3">
+              <div className="flex-1 relative">
+                <textarea
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder={t('chat.placeholder')}
+                  className="w-full px-4 py-3 border border-gray-200 bg-white/90 backdrop-blur-sm rounded-xl resize-none focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 min-h-[48px] max-h-[120px] text-gray-800 placeholder-gray-400 transition-all duration-300"
+                  rows={1}
+                  disabled={isLoading || (isWaitingForMore && pendingMessages.length > 0)}
+                />
+              </div>
+              
+              <motion.button
+                type="submit"
+                disabled={!inputValue.trim() || isLoading || (isWaitingForMore && pendingMessages.length > 0)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`p-3 rounded-xl font-semibold text-white shadow-lg transition-all duration-300 ${
+                  inputValue.trim() && !isLoading && !(isWaitingForMore && pendingMessages.length > 0)
+                    ? `bg-gradient-to-r ${getGradientClass()} hover:shadow-xl animate-pulse`
+                    : 'bg-gray-300 cursor-not-allowed'
+                }`}
+              >
+                {(isLoading || (isWaitingForMore && pendingMessages.length > 0)) ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                  />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </motion.button>
             </div>
             
-            <motion.button
-              type="submit"
-              disabled={!inputValue.trim() || isLoading || isWaitingForMore}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`p-3 rounded-xl font-semibold text-white shadow-lg transition-all duration-300 ${
-                inputValue.trim() && !isLoading && !isWaitingForMore
-                  ? `bg-gradient-to-r ${getGradientClass()} hover:shadow-xl animate-pulse`
-                  : 'bg-gray-300 cursor-not-allowed'
-              }`}
-            >
-              {(isLoading || isWaitingForMore) ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                />
-              ) : (
-                <Send className="w-5 h-5" />
-              )}
-            </motion.button>
-          </div>
-          
-          {isWaitingForMore && pendingMessages.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="absolute bottom-full left-0 right-0 mb-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm"
-            >
-              {t('chat.waiting_more')} ({pendingMessages.length} {t('chat.messages_queued')})
-            </motion.div>
-          )}
-        </form>
+            {isWaitingForMore && pendingMessages.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-full left-0 right-0 mb-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm"
+              >
+                {t('chat.waiting_more')} ({pendingMessages.length} {t('chat.messages_queued')})
+              </motion.div>
+            )}
+          </form>
+        </div>
       </motion.div>
     </div>
   );
