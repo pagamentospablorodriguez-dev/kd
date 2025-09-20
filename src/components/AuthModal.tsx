@@ -25,14 +25,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
     setLoading(true);
 
     try {
+      let authUser;
+
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
         if (error) throw error;
+        authUser = data.user;
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
@@ -42,7 +45,31 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
           }
         });
         if (error) throw error;
+        authUser = data.user;
       }
+
+      // Criar na tabela 'users' se não existir
+      if (authUser) {
+        const { data: existing } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+
+        if (!existing) {
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: authUser.id,
+              email: authUser.email,
+              name: formData.name || authUser.user_metadata?.name || '',
+              language: 'pt-BR',
+              timezone: 'America/Sao_Paulo'
+            });
+          if (insertError) console.log('Erro criando user na tabela:', insertError);
+        }
+      }
+
       onSuccess();
     } catch (error: any) {
       alert(error.message);
@@ -54,13 +81,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`
         }
       });
       if (error) throw error;
+
+      // OBS: Usuário será criado via callback depois do redirect
     } catch (error: any) {
       alert(error.message);
     } finally {
