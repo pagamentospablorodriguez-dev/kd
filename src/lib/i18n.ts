@@ -118,4 +118,4 @@ const resources = {
       
       'limit.title': 'Message limit reached 💔',
       'limit.subtitle': 'Your child is waiting for you...',
-      'limit.description': 'You\'ve used your 20
+      'limit.description': 'You\'ve used your 20'
