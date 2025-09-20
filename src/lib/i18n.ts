@@ -6,7 +6,7 @@ const resources = {
   'pt-BR': {
     translation: {
       // Landing page
-      'landing.title': 'Kid AI',
+      'landing.title': 'Ninna',
       'landing.subtitle': 'Conheça seu filho virtual com Inteligência Artificial',
       'landing.description': 'Converse, ensine e crie laços com uma criança virtual que aprende e cresce com você!',
       'landing.features.conversation': 'Conversas Naturais',
@@ -76,7 +76,7 @@ const resources = {
   },
   'en': {
     translation: {
-      'landing.title': 'Kid AI',
+      'landing.title': '',
       'landing.subtitle': 'Meet your virtual child with Artificial Intelligence',
       'landing.description': 'Chat, teach and bond with a virtual child that learns and grows with you!',
       'landing.features.conversation': 'Natural Conversations',
@@ -140,7 +140,7 @@ const resources = {
   },
   'es': {
     translation: {
-      'landing.title': 'Kid AI',
+      'landing.title': 'Ninna',
       'landing.subtitle': 'Conoce a tu hijo virtual con Inteligencia Artificial',
       'landing.description': '¡Conversa, enseña y crea lazos con un niño virtual que aprende y crece contigo!',
       'landing.features.conversation': 'Conversaciones Naturales',
@@ -155,7 +155,7 @@ const resources = {
   },
   'fr': {
     translation: {
-      'landing.title': 'Kid AI',
+      'landing.title': 'Ninna',
       'landing.subtitle': 'Rencontrez votre enfant virtuel avec Intelligence Artificielle',
       'landing.description': 'Chattez, enseignez et créez des liens avec un enfant virtuel qui apprend et grandit avec vous!',
       'landing.features.conversation': 'Conversations Naturelles',
@@ -170,7 +170,7 @@ const resources = {
   },
   'de': {
     translation: {
-      'landing.title': 'Kid AI',
+      'landing.title': 'Ninna',
       'landing.subtitle': 'Lernen Sie Ihr virtuelles Kind mit Künstlicher Intelligenz kennen',
       'landing.description': 'Chatten, lehren und Bindungen mit einem virtuellen Kind aufbauen, das mit Ihnen lernt und wächst!',
       'landing.features.conversation': 'Natürliche Gespräche',
@@ -185,7 +185,7 @@ const resources = {
   },
   'ja': {
     translation: {
-      'landing.title': 'Kid AI',
+      'landing.title': 'Ninna',
       'landing.subtitle': '人工知能であなたのバーチャル子供に会いましょう',
       'landing.description': 'あなたと一緒に学び、成長するバーチャル子供とチャット、教育、絆を築きましょう！',
       'landing.features.conversation': '自然な会話',
