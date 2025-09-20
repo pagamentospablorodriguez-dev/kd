@@ -7,8 +7,8 @@ import { ChildSetupData } from '../types';
 
 interface ChildSetupProps {
   onComplete?: (data: ChildSetupData) => void;
-  onBack?: () => void; // Nova prop para voltar
-  showBackButton?: boolean; // Nova prop para controlar se mostra o botão de voltar
+  onBack?: () => void;
+  showBackButton?: boolean;
 }
 
 const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackButton = false }) => {
@@ -19,13 +19,13 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
   const [loading, setLoading] = useState(false);
 
   const steps = [
-    { id: 'parent_name', title: t('setup.your_name'), icon: User, field: 'parentName', type: 'text', placeholder: 'Digite seu nome...' },
+    { id: 'parent_name', title: t('setup.your_name'), icon: User, field: 'parentName', type: 'text', placeholder: t('setup.name_placeholder') },
     { id: 'parent_gender', title: t('setup.your_gender'), icon: Heart, field: 'parentGender', type: 'select', options: [
         { value: 'male', label: t('setup.male') },
         { value: 'female', label: t('setup.female') }
       ]
     },
-    { id: 'child_name', title: t('setup.child_name'), icon: Baby, field: 'childName', type: 'text', placeholder: 'Nome do seu filho(a)...' },
+    { id: 'child_name', title: t('setup.child_name'), icon: Baby, field: 'childName', type: 'text', placeholder: t('setup.child_name_placeholder') },
     { id: 'child_age', title: t('setup.child_age'), icon: Baby, field: 'childAge', type: 'select', options: Array.from({ length: 14 }, (_, i) => ({
         value: i + 3,
         label: `${i + 3} ${t('setup.age_years')}`
