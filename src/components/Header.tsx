@@ -11,7 +11,7 @@ interface HeaderProps {
   hasMultipleChildren?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasMultipleChildren }) => {
+const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasMultipleChildren = false }) => {
   const { t } = useTranslation();
   
   if (!child) return null;
@@ -28,6 +28,23 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
     return child.gender === 'female' ? t('header.your_daughter') : t('header.your_son');
   };
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear local storage
+      localStorage.clear();
+      
+      // Force page reload as fallback
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force page reload as fallback
+      window.location.href = '/';
+    }
+  };
+
   return (
     <motion.header
       initial={{ y: -80, opacity: 0 }}
@@ -37,16 +54,16 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
     >
       <div className="flex items-center justify-between max-w-4xl mx-auto">
         <div className="flex items-center gap-3">
-          {hasMultipleChildren && (
-            <motion.button
-              onClick={onBackToSelector}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </motion.button>
-          )}
+          {/* Sempre mostrar botão de trocar filho */}
+          <motion.button
+            onClick={onBackToSelector}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title={t('header.switch_child')}
+          >
+            <Users className="w-5 h-5 text-gray-600" />
+          </motion.button>
 
           <div className={`w-10 h-10 bg-gradient-to-br ${gradientClass} rounded-xl flex items-center justify-center shadow-lg animate-pulse`}>
             <Heart className="w-5 h-5 text-white" />
@@ -63,18 +80,6 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
         </div>
 
         <div className="flex items-center gap-2">
-          {hasMultipleChildren && (
-            <motion.button
-              onClick={onBackToSelector}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Trocar de filho"
-            >
-              <Users className="w-5 h-5 text-gray-600" />
-            </motion.button>
-          )}
-
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -84,7 +89,7 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
           </motion.button>
 
           <motion.button
-            onClick={onLogout}
+            onClick={handleLogout}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
