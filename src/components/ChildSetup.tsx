@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Heart, User, Baby } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Heart, User, Baby } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { ChildSetupData } from '../types';
 
-
 interface ChildSetupProps {
-  onComplete?: (data: ChildSetupData) => void; // opcional se quiser usar redirecionamento
+  onComplete?: (data: ChildSetupData) => void;
+  onBack?: () => void; // Nova prop para voltar
+  showBackButton?: boolean; // Nova prop para controlar se mostra o botão de voltar
 }
 
-const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
+const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackButton = false }) => {
   const { t } = useTranslation();
   
   const [step, setStep] = useState(0);
@@ -27,7 +28,7 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
     { id: 'child_name', title: t('setup.child_name'), icon: Baby, field: 'childName', type: 'text', placeholder: 'Nome do seu filho(a)...' },
     { id: 'child_age', title: t('setup.child_age'), icon: Baby, field: 'childAge', type: 'select', options: Array.from({ length: 14 }, (_, i) => ({
         value: i + 3,
-        label: `${i + 3} anos`
+        label: `${i + 3} ${t('setup.age_years')}`
       }))
     },
     { id: 'child_gender', title: t('setup.child_gender'), icon: Heart, field: 'childGender', type: 'select', options: [
@@ -43,43 +44,57 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
     if (step < steps.length - 1) {
       setStep(step + 1);
     } else {
-      // Criar o filho no banco com nomes corretos
       setLoading(true);
       try {
-        const {
-          data: userData,
-          error: userError
-        } = await supabase.auth.getUser();
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) throw new Error('Usuário não encontrado');
 
-        if (userError || !userData.user) throw new Error('Usuário não encontrado');
+        // Criar/atualizar usuário
+        const { data: userResult, error: userError } = await supabase
+          .from('users')
+          .upsert({
+            id: userData.user.id,
+            email: userData.user.email!,
+            name: data.parentName,
+            gender: data.parentGender,
+            language: 'pt-BR'
+          })
+          .select()
+          .single();
 
-        const { data: createdChild, error } = await supabase
+        if (userError) throw userError;
+
+        // Criar filho
+        const { data: childResult, error: childError } = await supabase
           .from('children')
-          .insert([{
+          .insert({
             user_id: userData.user.id,
             name: data.childName,
             age: data.childAge,
             gender: data.childGender
-          }])
-          .select();
+          })
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (childError) throw childError;
 
-        console.log('Filho criado:', createdChild);
-
-        // Redirecionar ou chamar onComplete
         if (onComplete) {
           onComplete(data as ChildSetupData);
-        } else {
-          console.log('Filho criado, faça redirecionamento manualmente fora do componente');
         }
-
       } catch (err: any) {
         console.error(err);
         alert('Erro ao criar o filho: ' + err.message);
       } finally {
         setLoading(false);
       }
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 0) {
+      setStep(step - 1);
+    } else if (onBack) {
+      onBack();
     }
   };
 
@@ -97,6 +112,19 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50/30 to-gray-100/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg">
+        {/* Back button */}
+        {(showBackButton || step > 0) && (
+          <motion.button
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            onClick={handleBack}
+            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>{t('setup.back')}</span>
+          </motion.button>
+        )}
+
         <div className="mb-8">
           <div className="flex items-center justify-center mb-4">
             <span className="text-sm text-gray-500">{step + 1} de {steps.length}</span>
