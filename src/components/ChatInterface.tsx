@@ -321,7 +321,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           className="text-center space-y-2"
         >
           <div className="text-xs text-gray-400 dark:text-gray-500 space-y-1">
-            <p className="font-semibold">Kid AI: Onde Amor e Tecnologia se Encontram ❤️</p>
+            <p className="font-semibold">Ninna: Onde Amor e Tecnologia se Encontram ❤️</p>
             <p className="italic">Criando laços verdadeiros no mundo digital.</p>
           </div>
         </motion.div>
