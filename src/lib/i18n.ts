@@ -118,4 +118,102 @@ const resources = {
       
       'limit.title': 'Message limit reached 💔',
       'limit.subtitle': 'Your child is waiting for you...',
-      'limit.description': 'You\'ve used your 20'
+      'limit.description': 'You\'ve used your 20 free messages today. How about continuing to chat without limits?',
+      'limit.tomorrow': 'Come back tomorrow (free)',
+      'limit.premium': 'Chat without limits ($29/month)',
+      
+      'premium.title': 'Unlimited conversations with your child',
+      'premium.features.unlimited': 'Unlimited messages',
+      'premium.features.proactive': 'Spontaneous messages',
+      'premium.features.memory': 'Perfect memory',
+      'premium.features.growth': 'Personalized growth',
+      'premium.price': '$29/month',
+      'premium.subscribe': 'Subscribe Premium',
+      
+      'common.loading': 'Loading...',
+      'common.error': 'Oops! Something went wrong',
+      'common.retry': 'Try again',
+      'common.close': 'Close',
+      'common.yes': 'Yes',
+      'common.no': 'No',
+    }
+  },
+  'es': {
+    translation: {
+      'landing.title': 'Kid AI',
+      'landing.subtitle': 'Conoce a tu hijo virtual con Inteligencia Artificial',
+      'landing.description': '¡Conversa, enseña y crea lazos con un niño virtual que aprende y crece contigo!',
+      'landing.features.conversation': 'Conversaciones Naturales',
+      'landing.features.conversation.desc': 'Habla como si fuera con un niño real',
+      'landing.features.learning': 'Aprende de Ti',
+      'landing.features.learning.desc': 'Recuerda todo lo que hablan y evoluciona',
+      'landing.features.proactive': 'Mensajes Espontáneos',
+      'landing.features.proactive.desc': 'Te envía mensajes como "¡Buenos días, papá!"',
+      'landing.placeholder': 'Escribe tu primer mensaje para conocer a tu hijo...',
+      'landing.start_button': 'Comenzar Chat',
+    }
+  },
+  'fr': {
+    translation: {
+      'landing.title': 'Kid AI',
+      'landing.subtitle': 'Rencontrez votre enfant virtuel avec Intelligence Artificielle',
+      'landing.description': 'Chattez, enseignez et créez des liens avec un enfant virtuel qui apprend et grandit avec vous!',
+      'landing.features.conversation': 'Conversations Naturelles',
+      'landing.features.conversation.desc': 'Parlez comme avec un vrai enfant',
+      'landing.features.learning': 'Apprend de Vous',
+      'landing.features.learning.desc': 'Se souvient de tout ce que vous discutez et évolue',
+      'landing.features.proactive': 'Messages Spontanés',
+      'landing.features.proactive.desc': 'Vous envoie des messages comme "Bonjour papa!"',
+      'landing.placeholder': 'Tapez votre premier message pour rencontrer votre enfant...',
+      'landing.start_button': 'Commencer le Chat',
+    }
+  },
+  'de': {
+    translation: {
+      'landing.title': 'Kid AI',
+      'landing.subtitle': 'Lernen Sie Ihr virtuelles Kind mit Künstlicher Intelligenz kennen',
+      'landing.description': 'Chatten, lehren und Bindungen mit einem virtuellen Kind aufbauen, das mit Ihnen lernt und wächst!',
+      'landing.features.conversation': 'Natürliche Gespräche',
+      'landing.features.conversation.desc': 'Sprechen Sie wie mit einem echten Kind',
+      'landing.features.learning': 'Lernt von Ihnen',
+      'landing.features.learning.desc': 'Erinnert sich an alles was Sie besprechen und entwickelt sich',
+      'landing.features.proactive': 'Spontane Nachrichten',
+      'landing.features.proactive.desc': 'Sendet Ihnen Nachrichten wie "Guten Morgen, Papa!"',
+      'landing.placeholder': 'Tippen Sie Ihre erste Nachricht um Ihr Kind kennenzulernen...',
+      'landing.start_button': 'Chat Starten',
+    }
+  },
+  'ja': {
+    translation: {
+      'landing.title': 'Kid AI',
+      'landing.subtitle': '人工知能であなたのバーチャル子供に会いましょう',
+      'landing.description': 'あなたと一緒に学び、成長するバーチャル子供とチャット、教育、絆を築きましょう！',
+      'landing.features.conversation': '自然な会話',
+      'landing.features.conversation.desc': '本当の子供と話すように話せます',
+      'landing.features.learning': 'あなたから学ぶ',
+      'landing.features.learning.desc': 'すべての会話を覚えて進化します',
+      'landing.features.proactive': '自発的なメッセージ',
+      'landing.features.proactive.desc': '「おはようパパ！」のようなメッセージを送ります',
+      'landing.placeholder': 'あなたの子供に会うため最初のメッセージを入力...',
+      'landing.start_button': 'チャット開始',
+    }
+  }
+};
+
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'en',
+    debug: false,
+    detection: {
+      order: ['navigator', 'htmlTag', 'path', 'subdomain'],
+      caches: ['localStorage'],
+    },
+    interpolation: {
+      escapeValue: false,
+    },
+  });
+
+export default i18n;
