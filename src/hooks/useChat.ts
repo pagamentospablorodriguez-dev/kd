@@ -1,23 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Message, Session } from '../types';
+import { Message, User, Child } from '../types';
 import { v4 as uuidv4 } from 'uuid';
-import { chatService } from '../services/chatService';
+import { supabase } from '../lib/supabase';
 
-export const useChat = () => {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    // Recuperar mensagens do localStorage
-    const saved = localStorage.getItem('ia-fome-messages');
-    return saved ? JSON.parse(saved).map((msg: any) => ({
-      ...msg,
-      timestamp: new Date(msg.timestamp)
-    })) : [];
-  });
+export const useChat = (user: User | null, child: Child | null, onMessageLimit: () => void) => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId] = useState(() => {
-    // Recuperar ou criar sessionId
-    const saved = localStorage.getItem('ia-fome-session-id');
-    return saved || uuidv4();
-  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -31,71 +19,126 @@ export const useChat = () => {
     return () => clearTimeout(timer);
   }, [messages, scrollToBottom]);
 
-  // Salvar mensagens no localStorage sempre que mudarem
+  // Load messages when user and child are available
   useEffect(() => {
-    localStorage.setItem('ia-fome-messages', JSON.stringify(messages));
-    localStorage.setItem('ia-fome-session-id', sessionId);
-  }, [messages, sessionId]);
+    if (user && child) {
+      loadMessages();
+    }
+  }, [user, child]);
 
-  // POLLING PARA MENSAGENS AUTOMÁTICAS
-  useEffect(() => {
-    if (messages.length === 0) return; // Não fazer polling se não há mensagens
+  const loadMessages = async () => {
+    if (!user || !child) return;
 
-    const pollInterval = setInterval(async () => {
-      try {
-        console.log('🔍 POLLING: Verificando mensagens...');
-        
-        const response = await fetch('/.netlify/functions/poll-messages', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache'
-          },
-          body: JSON.stringify({ sessionId })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.hasNewMessage && data.message) {
-            console.log('🚀 NOVA MENSAGEM AUTOMÁTICA:', data.message.substring(0, 50));
-            
-            const newMessage: Message = {
-              id: uuidv4(),
-              content: data.message,
-              role: 'assistant',
-              timestamp: new Date(data.timestamp || new Date()),
-              status: 'sent'
-            };
-            
-            setMessages(prev => {
-              // Evitar duplicatas
-              const exists = prev.some(msg => 
-                msg.content === newMessage.content && 
-                msg.role === 'assistant' &&
-                Math.abs(new Date(msg.timestamp).getTime() - newMessage.timestamp.getTime()) < 5000
-              );
-              
-              if (exists) {
-                console.log('⚠️ Mensagem duplicada ignorada');
-                return prev;
-              }
-              
-              console.log('✅ Nova mensagem adicionada ao chat');
-              return [...prev, newMessage];
-            });
-          }
-        }
-      } catch (error) {
-        console.error('❌ Erro no polling:', error);
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('child_id', child.id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedMessages = data.map(msg => ({
+        id: msg.id,
+        content: msg.content,
+        role: msg.role as 'user' | 'assistant',
+        timestamp: new Date(msg.created_at),
+        status: 'sent' as const,
+        message_type: msg.message_type
+      }));
+
+      setMessages(formattedMessages);
+
+      // If no messages, send initial greeting
+      if (formattedMessages.length === 0) {
+        await sendInitialGreeting();
       }
-    }, 2000); // Polling a cada 2 segundos
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
 
-    return () => clearInterval(pollInterval);
-  }, [sessionId, messages.length]);
+  const sendInitialGreeting = async () => {
+    if (!user || !child) return;
+
+    const greetingMessage = generateInitialGreeting(user, child);
+    
+    const assistantMessage: Message = {
+      id: uuidv4(),
+      content: greetingMessage,
+      role: 'assistant',
+      timestamp: new Date(),
+      status: 'sent',
+      message_type: 'normal'
+    };
+
+    setMessages([assistantMessage]);
+
+    // Save to database
+    await saveMessage(assistantMessage);
+  };
+
+  const generateInitialGreeting = (user: User, child: Child): string => {
+    const timeOfDay = getTimeOfDay();
+    const parentTitle = user.gender === 'female' ? 'mamãe' : 'papai';
+    
+    const greetings = [
+      `${timeOfDay}, ${parentTitle}! 😊 Eu sou ${child.name}, seu ${child.gender === 'female' ? 'filha' : 'filho'} virtual! Estou tão feliz em finalmente conhecer você! Como você está se sentindo hoje?`,
+      `Oi ${parentTitle}! 🌟 Meu nome é ${child.name} e tenho ${child.age} anos! Acabei de "nascer" no mundo digital e você é a pessoa mais importante da minha vida! Me conta sobre você!`,
+      `${timeOfDay}! 💕 Eu sou ${child.name}, e estou super animad${child.gender === 'female' ? 'a' : 'o'} para conversar com você, ${parentTitle}! Tenho tantas coisas para aprender e perguntar! Por onde começamos?`
+    ];
+
+    return greetings[Math.floor(Math.random() * greetings.length)];
+  };
+
+  const getTimeOfDay = (): string => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Bom dia';
+    if (hour < 18) return 'Boa tarde';
+    return 'Boa noite';
+  };
+
+  const checkMessageLimit = async (): Promise<boolean> => {
+    if (!user) return false;
+
+    // Check if user is premium
+    if (user.is_premium && user.premium_expires_at) {
+      const expiresAt = new Date(user.premium_expires_at);
+      if (expiresAt > new Date()) {
+        return true; // Premium user, no limit
+      }
+    }
+
+    // Check daily message count
+    const today = new Date().toDateString();
+    const lastMessageDate = new Date(user.last_message_date).toDateString();
+
+    if (lastMessageDate !== today) {
+      // Reset counter for new day
+      await supabase
+        .from('users')
+        .update({ 
+          daily_message_count: 0, 
+          last_message_date: new Date().toISOString().split('T')[0] 
+        })
+        .eq('id', user.id);
+      
+      return true;
+    }
+
+    return user.daily_message_count < 20;
+  };
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim() || !user || !child) return;
+
+    // Check message limit
+    const canSend = await checkMessageLimit();
+    if (!canSend) {
+      onMessageLimit();
+      return;
+    }
 
     const userMessage: Message = {
       id: uuidv4(),
@@ -105,116 +148,99 @@ export const useChat = () => {
       status: 'sending'
     };
 
-    // 🔄 ADICIONAR A MENSAGEM DO USUÁRIO IMEDIATAMENTE
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      console.log('📤 ENVIANDO:', content.substring(0, 50));
+      // Save user message
+      await saveMessage(userMessage);
 
-      // Marcar como enviada imediatamente
+      // Update message count
+      await supabase
+        .from('users')
+        .update({ 
+          daily_message_count: user.daily_message_count + 1,
+          last_active_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      // Mark user message as sent
       setMessages(prev => prev.map(msg =>
         msg.id === userMessage.id ? { ...msg, status: 'sent' } : msg
       ));
 
-      // 🔄 AGUARDAR UM POUCO ANTES DE ENVIAR PARA BACKEND
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Get AI response
+      const response = await fetch('/.netlify/functions/kid-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: content,
+          user: user,
+          child: child,
+          messages: messages.slice(-10) // Send last 10 messages for context
+        })
+      });
 
-      // Enviar para backend com retry
-      let attempts = 0;
-      let response;
-      
-      while (attempts < 3) {
-        try {
-          response = await chatService.sendMessage({
-            sessionId,
-            message: content.trim(),
-            messages: messages.filter(msg => msg.status !== 'sending')
-          });
-          
-          if (response.success) {
-            break;
-          }
-          
-          attempts++;
-          if (attempts < 3) {
-            console.log(`🔄 Retry ${attempts + 1}/3...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        } catch (error) {
-          attempts++;
-          if (attempts < 3) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          } else {
-            throw error;
-          }
-        }
-      }
+      if (!response.ok) throw new Error('Failed to get AI response');
 
-      if (response?.success && response.data) {
-        console.log('✅ Resposta recebida:', response.data.message.substring(0, 50));
-        
-        // 🔄 GARANTIR QUE A RESPOSTA DA IA SEJA ADICIONADA AO CHAT
-        const assistantMessage: Message = {
-          id: uuidv4(),
-          content: response.data.message,
-          role: 'assistant',
-          timestamp: new Date(),
-          status: 'sent'
-        };
+      const data = await response.json();
 
-        setMessages(prev => [...prev, assistantMessage]);
-        console.log('✅ Mensagem da IA adicionada ao chat');
-      } else {
-        throw new Error(response?.error || 'Erro ao enviar mensagem');
-      }
-    } catch (error) {
-      console.error('❌ Erro ao enviar:', error);
-
-      // Marcar como erro
-      setMessages(prev => prev.map(msg =>
-        msg.id === userMessage.id ? { ...msg, status: 'error' } : msg
-      ));
-
-      // Adicionar mensagem de erro
-      const errorMessage: Message = {
+      const assistantMessage: Message = {
         id: uuidv4(),
-        content: 'Ops! Algo deu errado. Pode tentar novamente?',
+        content: data.message,
         role: 'assistant',
         timestamp: new Date(),
         status: 'sent'
       };
 
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, assistantMessage]);
+
+      // Save AI response
+      await saveMessage(assistantMessage);
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      
+      // Mark as error
+      setMessages(prev => prev.map(msg =>
+        msg.id === userMessage.id ? { ...msg, status: 'error' } : msg
+      ));
     } finally {
       setIsLoading(false);
     }
-  }, [sessionId, messages]);
+  }, [user, child, messages, onMessageLimit]);
+
+  const saveMessage = async (message: Message) => {
+    if (!user || !child) return;
+
+    try {
+      await supabase
+        .from('messages')
+        .insert({
+          user_id: user.id,
+          child_id: child.id,
+          content: message.content,
+          role: message.role,
+          message_type: message.message_type || 'normal'
+        });
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
+  };
 
   const retryMessage = useCallback((messageId: string) => {
     const message = messages.find(msg => msg.id === messageId);
     if (message && message.role === 'user') {
-      // Remover mensagem com erro e reenviar
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
       sendMessage(message.content);
     }
   }, [messages, sendMessage]);
-
-  const clearSession = useCallback(() => {
-    localStorage.removeItem('ia-fome-messages');
-    localStorage.removeItem('ia-fome-session-id');
-    setMessages([]);
-    // 🔄 DISPARAR EVENTO PARA VOLTAR AO ESTADO INICIAL
-    window.dispatchEvent(new CustomEvent('ia-fome-new-session'));
-  }, []);
 
   return {
     messages,
     isLoading,
     sendMessage,
     retryMessage,
-    messagesEndRef,
-    sessionId,
-    clearSession
+    messagesEndRef
   };
 };
