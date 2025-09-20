@@ -57,9 +57,9 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
           .from('children')
           .insert([{
             user_id: userData.user.id,
-            name: data.name,
-            age: data.age,
-            gender: data.gender
+            name: data.childName,
+            age: data.childAge,
+            gender: data.childGender
           }])
           .select();
 
