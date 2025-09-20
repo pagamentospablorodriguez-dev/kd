@@ -146,51 +146,14 @@ function App() {
   };
 
   const handleSetupComplete = async (setupData: ChildSetupData) => {
-    try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) throw new Error('No authenticated user');
-
-      // Create/update user record
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .upsert({
-          id: authUser.id,
-          email: authUser.email!,
-          name: setupData.parentName,
-          gender: setupData.parentGender,
-          language: 'pt-BR'
-        })
-        .select()
-        .single();
-
-      if (userError) throw userError;
-
-      // Create child record
-      const { data: childData, error: childError } = await supabase
-        .from('children')
-        .insert({
-          user_id: authUser.id,
-          name: setupData.childName,
-          age: setupData.childAge,
-          gender: setupData.childGender
-        })
-        .select()
-        .single();
-
-      if (childError) throw childError;
-
-      setUser(userData);
-      setChild(childData);
-      setChildren([childData]);
-      localStorage.setItem('lastSelectedChild', childData.id);
-      setAppState('chat');
-    } catch (error) {
-      console.error('Error completing setup:', error);
-      alert('Erro ao criar seu filho. Tente novamente.');
+    // Reload data after setup
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (authUser) {
+      await checkUserSetup(authUser.id);
     }
   };
 
-  const handleSelectChild = (selectedChild: Child) => {
+  const handleSelectChild = async (selectedChild: Child) => {
     setChild(selectedChild);
     localStorage.setItem('lastSelectedChild', selectedChild.id);
     setAppState('chat');
@@ -203,12 +166,30 @@ function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('lastSelectedChild');
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem('lastSelectedChild');
+      setUser(null);
+      setChild(null);
+      setChildren([]);
+      setAppState('landing');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      // Force reload as fallback
+      window.location.reload();
+    }
   };
 
   const handleMessageLimit = () => {
     setShowLimit(true);
+  };
+
+  const handleBackFromSetup = () => {
+    if (children.length > 0) {
+      setAppState('child_selector');
+    } else {
+      setAppState('landing');
+    }
   };
 
   // Determine color scheme based on child gender
@@ -242,7 +223,11 @@ function App() {
       <AnimatePresence mode="wait">
         {appState === 'setup' && (
           <motion.div key="setup">
-            <ChildSetup onComplete={handleSetupComplete} />
+            <ChildSetup 
+              onComplete={handleSetupComplete} 
+              onBack={handleBackFromSetup}
+              showBackButton={children.length > 0}
+            />
           </motion.div>
         )}
 
