@@ -185,18 +185,28 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
       const data = await response.json();
 
-      const assistantMessage: Message = {
-        id: uuidv4(),
-        content: data.message,
-        role: 'assistant',
-        timestamp: new Date(),
-        status: 'sent'
-      };
+      // Split AI response into multiple messages if needed
+      const aiResponses = splitAIResponse(data.message);
 
-      setMessages(prev => [...prev, assistantMessage]);
+      for (let i = 0; i < aiResponses.length; i++) {
+        const assistantMessage: Message = {
+          id: uuidv4(),
+          content: aiResponses[i],
+          role: 'assistant',
+          timestamp: new Date(),
+          status: 'sent'
+        };
 
-      // Save AI response
-      await saveMessage(assistantMessage);
+        setMessages(prev => [...prev, assistantMessage]);
+
+        // Save AI response
+        await saveMessage(assistantMessage);
+
+        // Add delay between multiple messages
+        if (i < aiResponses.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -209,6 +219,136 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
       setIsLoading(false);
     }
   }, [user, child, messages, onMessageLimit]);
+
+  const sendMultipleMessages = useCallback(async (messageContents: string[]) => {
+    if (!messageContents.length || !user || !child) return;
+
+    // Check message limit
+    const canSend = await checkMessageLimit();
+    if (!canSend) {
+      onMessageLimit();
+      return;
+    }
+
+    // Add all user messages at once
+    const userMessages: Message[] = messageContents.map(content => ({
+      id: uuidv4(),
+      content: content.trim(),
+      role: 'user',
+      timestamp: new Date(),
+      status: 'sending'
+    }));
+
+    setMessages(prev => [...prev, ...userMessages]);
+    setIsLoading(true);
+
+    try {
+      // Save all user messages
+      for (const msg of userMessages) {
+        await saveMessage(msg);
+      }
+
+      // Update message count
+      await supabase
+        .from('users')
+        .update({ 
+          daily_message_count: user.daily_message_count + userMessages.length,
+          last_active_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      // Mark user messages as sent
+      setMessages(prev => prev.map(msg => {
+        const userMsg = userMessages.find(um => um.id === msg.id);
+        return userMsg ? { ...msg, status: 'sent' } : msg;
+      }));
+
+      // Get AI response for all messages combined
+      const combinedMessage = messageContents.join('\n\n');
+      const response = await fetch('/.netlify/functions/kid-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: combinedMessage,
+          user: user,
+          child: child,
+          messages: messages.slice(-10) // Send last 10 messages for context
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to get AI response');
+
+      const data = await response.json();
+
+      // Split AI response into multiple messages if needed
+      const aiResponses = splitAIResponse(data.message);
+
+      for (let i = 0; i < aiResponses.length; i++) {
+        const assistantMessage: Message = {
+          id: uuidv4(),
+          content: aiResponses[i],
+          role: 'assistant',
+          timestamp: new Date(),
+          status: 'sent'
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+
+        // Save AI response
+        await saveMessage(assistantMessage);
+
+        // Add delay between multiple messages
+        if (i < aiResponses.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+
+    } catch (error) {
+      console.error('Error sending messages:', error);
+      
+      // Mark as error
+      setMessages(prev => prev.map(msg => {
+        const userMsg = userMessages.find(um => um.id === msg.id);
+        return userMsg ? { ...msg, status: 'error' } : msg;
+      }));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, child, messages, onMessageLimit]);
+
+  const splitAIResponse = (response: string): string[] => {
+    // Split by double line breaks or when there's a natural conversation break
+    const parts = response.split(/\n\n+/);
+    const messages: string[] = [];
+    
+    for (const part of parts) {
+      const trimmed = part.trim();
+      if (trimmed) {
+        // Further split if the message is very long
+        if (trimmed.length > 200) {
+          const sentences = trimmed.split(/[.!?]+\s+/);
+          let currentMessage = '';
+          
+          for (const sentence of sentences) {
+            if (currentMessage.length + sentence.length > 200 && currentMessage) {
+              messages.push(currentMessage.trim() + '.');
+              currentMessage = sentence;
+            } else {
+              currentMessage += (currentMessage ? ' ' : '') + sentence;
+            }
+          }
+          
+          if (currentMessage) {
+            messages.push(currentMessage.trim());
+          }
+        } else {
+          messages.push(trimmed);
+        }
+      }
+    }
+    
+    return messages.length > 0 ? messages : [response];
+  };
 
   const saveMessage = async (message: Message) => {
     if (!user || !child) return;
@@ -223,6 +363,20 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
           role: message.role,
           message_type: message.message_type || 'normal'
         });
+
+      // Save analytics
+      await supabase
+        .from('user_analytics')
+        .insert({
+          user_id: user.id,
+          event_type: 'message_sent',
+          event_data: {
+            child_id: child.id,
+            message_role: message.role,
+            message_length: message.content.length
+          }
+        });
+
     } catch (error) {
       console.error('Error saving message:', error);
     }
@@ -240,6 +394,7 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     messages,
     isLoading,
     sendMessage,
+    sendMultipleMessages,
     retryMessage,
     messagesEndRef
   };
