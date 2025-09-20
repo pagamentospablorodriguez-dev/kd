@@ -31,8 +31,8 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
     // Determinar URL baseado no idioma
     const isPtBR = i18n.language === 'pt-BR';
     const premiumUrl = isPtBR 
-      ? 'https://pay.example.com/kid-ai-premium-br'
-      : 'https://pay.example.com/kid-ai-premium-usd';
+      ? 'https://pay.kiwify.com.br/Xpj0Ymu'
+      : 'https://pay.kiwify.com.br/rdNpnqU';
     
     window.open(premiumUrl, '_blank');
   };
