@@ -11,14 +11,25 @@ interface LimitModalProps {
 }
 
 const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, childGender }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const colorScheme = childGender === 'female' ? 'pink' : 'blue';
   const gradientClass = colorScheme === 'pink' ? 'from-pink-500 to-rose-500' : 'from-blue-500 to-cyan-500';
   const heartColor = colorScheme === 'pink' ? 'text-pink-500' : 'text-blue-500';
 
   const handlePremiumClick = () => {
-    window.open(import.meta.env.VITE_PREMIUM_PAYMENT_URL, '_blank');
+    // Determinar URL baseado no idioma
+    const isPtBR = i18n.language === 'pt-BR';
+    const premiumUrl = isPtBR 
+      ? 'https://pay.example.com/kid-ai-premium-br'
+      : 'https://pay.example.com/kid-ai-premium-usd';
+    
+    window.open(premiumUrl, '_blank');
+  };
+
+  const getPriceDisplay = () => {
+    const isPtBR = i18n.language === 'pt-BR';
+    return isPtBR ? 'R$ 29/mês' : '$29/month';
   };
 
   return (
@@ -105,7 +116,7 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
                 >
                   <Crown className="w-5 h-5" />
                 </motion.div>
-                {t('limit.premium')}
+                {t('limit.premium')} ({getPriceDisplay()})
                 
                 {/* Shimmer effect */}
                 <motion.div
