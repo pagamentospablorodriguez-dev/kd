@@ -24,21 +24,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 }) => {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
-  const [pendingMessages, setPendingMessages] = useState<string[]>([]);
-  const [isWaitingForMore, setIsWaitingForMore] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const waitingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { messages, isLoading, sendMessage, sendMultipleMessages, retryMessage, messagesEndRef } = useChat(
+  const { messages, isLoading, sendMessage, retryMessage, messagesEndRef } = useChat(
     user, 
     child, 
     onMessageLimit
   );
 
   useEffect(() => {
-    if (inputRef.current) {
+    if (inputRef.current && !isInitialState) {
       inputRef.current.focus();
     }
-  }, []);
+  }, [isInitialState]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,35 +46,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     if (isInitialState) {
       onFirstMessage();
+      // Pequeno delay para transição suave
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    // Add message to pending queue
-    setPendingMessages(prev => [...prev, messageToSend]);
-    setIsWaitingForMore(true);
-
-    // Clear any existing timeout
-    if (waitingTimeoutRef.current) {
-      clearTimeout(waitingTimeoutRef.current);
+    try {
+      await sendMessage(messageToSend);
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
-
-    // Wait 5 seconds for more messages (increased from 3)
-    waitingTimeoutRef.current = setTimeout(async () => {
-      const allMessages = [...pendingMessages, messageToSend];
-      setPendingMessages([]);
-      setIsWaitingForMore(false);
-
-      try {
-        if (allMessages.length === 1) {
-          await sendMessage(allMessages[0]);
-        } else {
-          await sendMultipleMessages(allMessages);
-        }
-      } catch (error) {
-        console.error('Error sending message:', error);
-      }
-    }, 5000); // Increased to 5 seconds
-  }, [inputValue, isLoading, isInitialState, onFirstMessage, pendingMessages, sendMessage, sendMultipleMessages]);
+  }, [inputValue, isLoading, isInitialState, onFirstMessage, sendMessage]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -380,7 +358,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           ))}
         </AnimatePresence>
 
-        {(isLoading || isWaitingForMore) && (
+        {isLoading && (
           <div className="flex justify-start mb-4">
             <div className="flex max-w-[85%] sm:max-w-[75%]">
               <div className={`flex-shrink-0 w-10 h-10 bg-gradient-to-br ${getGradientClass()} rounded-full flex items-center justify-center mr-3 shadow-lg animate-pulse relative`}>
@@ -409,7 +387,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Fixed Input - Properly positioned */}
+      {/* Fixed Input */}
       <motion.div
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -428,22 +406,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   placeholder={t('chat.placeholder')}
                   className="w-full px-4 py-3 border border-gray-200 bg-white/90 backdrop-blur-sm rounded-xl resize-none focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 min-h-[48px] max-h-[120px] text-gray-800 placeholder-gray-400 transition-all duration-300"
                   rows={1}
-                  disabled={isLoading || (isWaitingForMore && pendingMessages.length > 0)}
+                  disabled={isLoading}
                 />
               </div>
               
               <motion.button
                 type="submit"
-                disabled={!inputValue.trim() || isLoading || (isWaitingForMore && pendingMessages.length > 0)}
+                disabled={!inputValue.trim() || isLoading}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className={`p-3 rounded-xl font-semibold text-white shadow-lg transition-all duration-300 ${
-                  inputValue.trim() && !isLoading && !(isWaitingForMore && pendingMessages.length > 0)
+                  inputValue.trim() && !isLoading
                     ? `bg-gradient-to-r ${getGradientClass()} hover:shadow-xl animate-pulse`
                     : 'bg-gray-300 cursor-not-allowed'
                 }`}
               >
-                {(isLoading || (isWaitingForMore && pendingMessages.length > 0)) ? (
+                {isLoading ? (
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
@@ -454,16 +432,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 )}
               </motion.button>
             </div>
-            
-            {isWaitingForMore && pendingMessages.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute bottom-full left-0 right-0 mb-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm"
-              >
-                {t('chat.waiting_more')} ({pendingMessages.length} {t('chat.messages_queued')})
-              </motion.div>
-            )}
           </form>
         </div>
       </motion.div>
