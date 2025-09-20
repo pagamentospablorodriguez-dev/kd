@@ -465,7 +465,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </motion.div>
           )}
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };
