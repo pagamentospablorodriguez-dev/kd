@@ -47,7 +47,31 @@ function App() {
     // Listen to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
         if (session) {
+          // Handle Google OAuth callback
+          if (session.user.app_metadata.provider === 'google') {
+            // Create user in database if not exists
+            const { data: existingUser } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (!existingUser) {
+              await supabase
+                .from('users')
+                .insert({
+                  id: session.user.id,
+                  email: session.user.email!,
+                  name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                  language: 'pt-BR',
+                  timezone: 'America/Sao_Paulo'
+                });
+            }
+          }
+          
           await checkUserSetup(session.user.id);
         } else {
           setUser(null);
@@ -160,23 +184,26 @@ function App() {
   };
 
   const handleBackToSelector = () => {
-    if (children.length > 1) {
-      setAppState('child_selector');
-    }
+    setAppState('child_selector');
   };
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      localStorage.removeItem('lastSelectedChild');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      localStorage.clear();
       setUser(null);
       setChild(null);
       setChildren([]);
       setAppState('landing');
+      
+      // Force refresh as fallback
+      window.location.href = '/';
     } catch (error) {
       console.error('Error logging out:', error);
-      // Force reload as fallback
-      window.location.reload();
+      // Force refresh as fallback
+      window.location.href = '/';
     }
   };
 
