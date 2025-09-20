@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Sparkles, ArrowLeft, LogOut, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Child } from '../types';
 
 interface HeaderProps {
@@ -11,6 +12,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasMultipleChildren }) => {
+  const { t } = useTranslation();
+  
   if (!child) return null;
 
   const colorScheme = child.gender === 'female' ? 'pink' : 'blue';
@@ -20,6 +23,10 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
   const textClass = colorScheme === 'pink'
     ? 'from-pink-600 to-rose-500'
     : 'from-blue-600 to-cyan-500';
+
+  const getChildTitle = () => {
+    return child.gender === 'female' ? t('header.your_daughter') : t('header.your_son');
+  };
 
   return (
     <motion.header
@@ -50,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
               {child.name}
             </h1>
             <p className="text-xs text-gray-500">
-              {child.age} anos • Seu {child.gender === 'female' ? 'filha' : 'filho'} virtual
+              {child.age} {t('children.years_old')} • {getChildTitle()}
             </p>
           </div>
         </div>
