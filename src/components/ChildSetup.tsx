@@ -4,13 +4,15 @@ import { ArrowRight, Heart, User, Baby } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { ChildSetupData } from '../types';
+import { useRouter } from 'next/router';
 
 interface ChildSetupProps {
-  onComplete: (data: ChildSetupData) => void;
+  onComplete?: (data: ChildSetupData) => void; // opcional se quiser usar redirecionamento
 }
 
 const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<Partial<ChildSetupData>>({});
   const [loading, setLoading] = useState(false);
@@ -41,18 +43,37 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
     if (step < steps.length - 1) {
       setStep(step + 1);
     } else {
-      // Aqui criamos o filho no banco
+      // Criar o filho no banco com nomes corretos
       setLoading(true);
       try {
+        const {
+          data: userData,
+          error: userError
+        } = await supabase.auth.getUser();
+
+        if (userError || !userData.user) throw new Error('Usuário não encontrado');
+
         const { data: createdChild, error } = await supabase
           .from('children')
-          .insert([{ ...data }])
+          .insert([{
+            user_id: userData.user.id,
+            name: data.childName,
+            age: data.childAge,
+            gender: data.childGender
+          }])
           .select();
 
         if (error) throw error;
 
         console.log('Filho criado:', createdChild);
-        onComplete(data as ChildSetupData);
+
+        // Redirecionar ou chamar onComplete
+        if (onComplete) {
+          onComplete(data as ChildSetupData);
+        } else {
+          router.push('/dashboard'); // coloque a rota que quiser
+        }
+
       } catch (err: any) {
         console.error(err);
         alert('Erro ao criar o filho: ' + err.message);
@@ -68,7 +89,10 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
   const getCurrentValue = () => data[currentStep.field as keyof ChildSetupData];
 
   const colorScheme = data.childGender === 'female' ? 'pink' : data.childGender === 'male' ? 'blue' : 'purple';
-  const getGradientClass = () => colorScheme === 'pink' ? 'from-pink-500 to-rose-500' : colorScheme === 'blue' ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-pink-500';
+  const getGradientClass = () =>
+    colorScheme === 'pink' ? 'from-pink-500 to-rose-500' :
+    colorScheme === 'blue' ? 'from-blue-500 to-cyan-500' :
+    'from-purple-500 to-pink-500';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50/30 to-gray-100/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center p-4">
