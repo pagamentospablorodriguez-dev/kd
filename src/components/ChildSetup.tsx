@@ -1,0 +1,210 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Heart, User, Baby } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ChildSetupData } from '../types';
+
+interface ChildSetupProps {
+  onComplete: (data: ChildSetupData) => void;
+}
+
+const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete }) => {
+  const { t } = useTranslation();
+  const [step, setStep] = useState(0);
+  const [data, setData] = useState<Partial<ChildSetupData>>({});
+
+  const steps = [
+    {
+      id: 'parent_name',
+      title: t('setup.your_name'),
+      icon: User,
+      field: 'parentName',
+      type: 'text',
+      placeholder: 'Digite seu nome...'
+    },
+    {
+      id: 'parent_gender',
+      title: t('setup.your_gender'),
+      icon: Heart,
+      field: 'parentGender',
+      type: 'select',
+      options: [
+        { value: 'male', label: t('setup.male') },
+        { value: 'female', label: t('setup.female') }
+      ]
+    },
+    {
+      id: 'child_name',
+      title: t('setup.child_name'),
+      icon: Baby,
+      field: 'childName',
+      type: 'text',
+      placeholder: 'Nome do seu filho(a)...'
+    },
+    {
+      id: 'child_age',
+      title: t('setup.child_age'),
+      icon: Baby,
+      field: 'childAge',
+      type: 'select',
+      options: Array.from({ length: 14 }, (_, i) => ({
+        value: i + 3,
+        label: `${i + 3} anos`
+      }))
+    },
+    {
+      id: 'child_gender',
+      title: t('setup.child_gender'),
+      icon: Heart,
+      field: 'childGender',
+      type: 'select',
+      options: [
+        { value: 'male', label: t('setup.boy') },
+        { value: 'female', label: t('setup.girl') }
+      ]
+    }
+  ];
+
+  const currentStep = steps[step];
+
+  const handleNext = () => {
+    if (step < steps.length - 1) {
+      setStep(step + 1);
+    } else {
+      onComplete(data as ChildSetupData);
+    }
+  };
+
+  const handleSelectOption = (value: any) => {
+    setData({ ...data, [currentStep.field]: value });
+  };
+
+  const handleInputChange = (value: string) => {
+    setData({ ...data, [currentStep.field]: value });
+  };
+
+  const isStepComplete = () => {
+    return data[currentStep.field as keyof ChildSetupData] !== undefined;
+  };
+
+  const getCurrentValue = () => {
+    return data[currentStep.field as keyof ChildSetupData];
+  };
+
+  // Determine color scheme based on child gender
+  const colorScheme = data.childGender === 'female' ? 'pink' : data.childGender === 'male' ? 'blue' : 'purple';
+  
+  const getGradientClass = () => {
+    switch (colorScheme) {
+      case 'pink': return 'from-pink-500 to-rose-500';
+      case 'blue': return 'from-blue-500 to-cyan-500';
+      default: return 'from-purple-500 to-pink-500';
+    }
+  };
+
+  const getAccentClass = () => {
+    switch (colorScheme) {
+      case 'pink': return 'text-pink-500 border-pink-200 hover:bg-pink-50';
+      case 'blue': return 'text-blue-500 border-blue-200 hover:bg-blue-50';
+      default: return 'text-purple-500 border-purple-200 hover:bg-purple-50';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50/30 to-gray-100/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-lg"
+      >
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <span className="text-sm text-gray-500">
+              {step + 1} de {steps.length}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <motion.div
+              className={`h-2 rounded-full bg-gradient-to-r ${getGradientClass()}`}
+              initial={{ width: 0 }}
+              animate={{ width: `${((step + 1) / steps.length) * 100}%` }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+
+        {/* Step Content */}
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50"
+        >
+          <div className="text-center mb-8">
+            <div className={`w-16 h-16 bg-gradient-to-br ${getGradientClass()} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+              <currentStep.icon className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+              {currentStep.title}
+            </h2>
+          </div>
+
+          {/* Input Field */}
+          {currentStep.type === 'text' && (
+            <div className="mb-6">
+              <input
+                type="text"
+                placeholder={currentStep.placeholder}
+                value={getCurrentValue() as string || ''}
+                onChange={(e) => handleInputChange(e.target.value)}
+                className="w-full px-4 py-4 text-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors text-center"
+                autoFocus
+              />
+            </div>
+          )}
+
+          {/* Select Options */}
+          {currentStep.type === 'select' && (
+            <div className="grid gap-3 mb-6">
+              {currentStep.options?.map((option) => (
+                <motion.button
+                  key={option.value}
+                  onClick={() => handleSelectOption(option.value)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`p-4 border-2 rounded-xl text-lg font-semibold transition-all ${
+                    getCurrentValue() === option.value
+                      ? `bg-gradient-to-r ${getGradientClass()} text-white border-transparent shadow-lg`
+                      : `border-gray-200 hover:border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700`
+                  }`}
+                >
+                  {option.label}
+                </motion.button>
+              ))}
+            </div>
+          )}
+
+          {/* Continue Button */}
+          <motion.button
+            onClick={handleNext}
+            disabled={!isStepComplete()}
+            whileHover={{ scale: isStepComplete() ? 1.02 : 1 }}
+            whileTap={{ scale: isStepComplete() ? 0.98 : 1 }}
+            className={`w-full py-4 rounded-xl font-semibold text-lg transition-all flex items-center justify-center gap-2 ${
+              isStepComplete()
+                ? `bg-gradient-to-r ${getGradientClass()} text-white shadow-lg hover:shadow-xl`
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {step === steps.length - 1 ? t('setup.meet_child') : t('setup.continue')}
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default ChildSetup;
