@@ -3,42 +3,48 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import ChatInterface from './components/ChatInterface';
 import Header from './components/Header';
-import ThemeToggle from './components/ThemeToggle';
 import AuthModal from './components/AuthModal';
 import ChildSetup from './components/ChildSetup';
+import ChildSelector from './components/ChildSelector';
 import LimitModal from './components/LimitModal';
 import { supabase } from './lib/supabase';
 import { User, Child, ChildSetupData } from './types';
 import './lib/i18n';
 
-type AppState = 'landing' | 'auth' | 'setup' | 'chat' | 'limit';
+type AppState = 'landing' | 'auth' | 'setup' | 'chat' | 'limit' | 'child_selector';
 
 function App() {
   const { t } = useTranslation();
   const [appState, setAppState] = useState<AppState>('landing');
-  const [isDark, setIsDark] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [child, setChild] = useState<Child | null>(null);
+  const [children, setChildren] = useState<Child[]>([]);
   const [showAuth, setShowAuth] = useState(false);
   const [showLimit, setShowLimit] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for saved theme
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      // Check auth state
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        await checkUserSetup(session.user.id);
+      } else {
+        setAppState('landing');
+      }
+    } catch (error) {
+      console.error('Error initializing app:', error);
+      setAppState('landing');
+    } finally {
+      setLoading(false);
     }
 
-    // Check auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        checkUserSetup(session.user.id);
-      }
-    });
-
+    // Listen to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session) {
@@ -46,13 +52,14 @@ function App() {
         } else {
           setUser(null);
           setChild(null);
+          setChildren([]);
           setAppState('landing');
         }
       }
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  };
 
   const checkUserSetup = async (userId: string) => {
     try {
@@ -74,24 +81,41 @@ function App() {
 
       setUser(userData);
 
-      // Check if child exists
-      const { data: childData, error: childError } = await supabase
+      // Get all children for this user
+      const { data: childrenData, error: childrenError } = await supabase
         .from('children')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .order('created_at', { ascending: false });
 
-      if (childError && childError.code !== 'PGRST116') {
-        throw childError;
+      if (childrenError && childrenError.code !== 'PGRST116') {
+        throw childrenError;
       }
 
-      if (!childData) {
+      setChildren(childrenData || []);
+
+      if (!childrenData || childrenData.length === 0) {
         setAppState('setup');
         return;
       }
 
-      setChild(childData);
-      setAppState('chat');
+      // If only one child, select it automatically
+      if (childrenData.length === 1) {
+        setChild(childrenData[0]);
+        setAppState('chat');
+      } else {
+        // Multiple children, show selector
+        const lastSelectedChildId = localStorage.getItem('lastSelectedChild');
+        if (lastSelectedChildId) {
+          const lastChild = childrenData.find(c => c.id === lastSelectedChildId);
+          if (lastChild) {
+            setChild(lastChild);
+            setAppState('chat');
+            return;
+          }
+        }
+        setAppState('child_selector');
+      }
     } catch (error) {
       console.error('Error checking user setup:', error);
       setAppState('setup');
@@ -105,7 +129,11 @@ function App() {
     }
     
     if (!child) {
-      setAppState('setup');
+      if (children.length === 0) {
+        setAppState('setup');
+      } else {
+        setAppState('child_selector');
+      }
       return;
     }
 
@@ -130,7 +158,7 @@ function App() {
           email: authUser.email!,
           name: setupData.parentName,
           gender: setupData.parentGender,
-          language: 'pt-BR' // Will be updated based on browser
+          language: 'pt-BR'
         })
         .select()
         .single();
@@ -153,6 +181,8 @@ function App() {
 
       setUser(userData);
       setChild(childData);
+      setChildren([childData]);
+      localStorage.setItem('lastSelectedChild', childData.id);
       setAppState('chat');
     } catch (error) {
       console.error('Error completing setup:', error);
@@ -160,15 +190,21 @@ function App() {
     }
   };
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    if (!isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+  const handleSelectChild = (selectedChild: Child) => {
+    setChild(selectedChild);
+    localStorage.setItem('lastSelectedChild', selectedChild.id);
+    setAppState('chat');
+  };
+
+  const handleBackToSelector = () => {
+    if (children.length > 1) {
+      setAppState('child_selector');
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem('lastSelectedChild');
   };
 
   const handleMessageLimit = () => {
@@ -181,22 +217,43 @@ function App() {
   const getBackgroundClass = () => {
     switch (colorScheme) {
       case 'pink':
-        return 'from-white via-pink-50/30 to-rose-50/20 dark:from-gray-900 dark:via-pink-900/20 dark:to-gray-800';
+        return 'from-white via-pink-50/30 to-rose-50/20';
       case 'blue':
-        return 'from-white via-blue-50/30 to-cyan-50/20 dark:from-gray-900 dark:via-blue-900/20 dark:to-gray-800';
+        return 'from-white via-blue-50/30 to-cyan-50/20';
       default:
-        return 'from-white via-purple-50/30 to-pink-50/20 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-800';
+        return 'from-white via-purple-50/30 to-pink-50/20';
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-gray-50">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen bg-gradient-to-br ${getBackgroundClass()} transition-colors duration-500`}>
-      <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
-      
       <AnimatePresence mode="wait">
         {appState === 'setup' && (
           <motion.div key="setup">
             <ChildSetup onComplete={handleSetupComplete} />
+          </motion.div>
+        )}
+
+        {appState === 'child_selector' && (
+          <motion.div key="child_selector">
+            <ChildSelector 
+              children={children}
+              onSelectChild={handleSelectChild}
+              onCreateNew={() => setAppState('setup')}
+              onLogout={handleLogout}
+            />
           </motion.div>
         )}
 
@@ -214,6 +271,7 @@ function App() {
               user={user}
               child={child}
               onMessageLimit={handleMessageLimit}
+              onShowAuth={() => setShowAuth(true)}
             />
           </motion.div>
         )}
@@ -226,7 +284,12 @@ function App() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="min-h-screen flex flex-col"
           >
-            <Header child={child} />
+            <Header 
+              child={child} 
+              onBackToSelector={handleBackToSelector}
+              onLogout={handleLogout}
+              hasMultipleChildren={children.length > 1}
+            />
             <div className="flex-1 flex flex-col">
               <ChatInterface 
                 isInitialState={false}
@@ -234,6 +297,7 @@ function App() {
                 user={user}
                 child={child}
                 onMessageLimit={handleMessageLimit}
+                onShowAuth={() => setShowAuth(true)}
               />
             </div>
           </motion.div>
