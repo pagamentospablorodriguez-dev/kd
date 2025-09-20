@@ -17,7 +17,7 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
   onCreateNew,
   onLogout
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const getChildGradient = (gender: 'male' | 'female') => {
     return gender === 'female' ? 'from-pink-500 to-rose-500' : 'from-blue-500 to-cyan-500';
@@ -28,7 +28,18 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
   };
 
   const handlePremiumClick = () => {
-    window.open(import.meta.env.VITE_PREMIUM_PAYMENT_URL || '#', '_blank');
+    // Determinar URL baseado no idioma
+    const isPtBR = i18n.language === 'pt-BR';
+    const premiumUrl = isPtBR 
+      ? 'https://pay.example.com/kid-ai-premium-br'
+      : 'https://pay.example.com/kid-ai-premium-usd';
+    
+    window.open(premiumUrl, '_blank');
+  };
+
+  const getPriceDisplay = () => {
+    const isPtBR = i18n.language === 'pt-BR';
+    return isPtBR ? 'R$ 29/mês' : '$29/month';
   };
 
   return (
@@ -105,7 +116,7 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-yellow-300">{t('premium.cta_price')}</div>
+              <div className="text-2xl font-bold text-yellow-300">{getPriceDisplay()}</div>
             </div>
           </div>
 
