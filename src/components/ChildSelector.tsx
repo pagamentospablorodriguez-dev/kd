@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Heart, LogOut, Baby, Sparkles } from 'lucide-react';
+import { Plus, Heart, LogOut, Sparkles, Crown, Zap, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Child } from '../types';
 
@@ -27,6 +27,10 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
     return gender === 'female' ? 'from-pink-50 to-rose-50' : 'from-blue-50 to-cyan-50';
   };
 
+  const handlePremiumClick = () => {
+    window.open(import.meta.env.VITE_PREMIUM_PAYMENT_URL || '#', '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-purple-50/30 to-pink-50/20 flex flex-col p-4">
       {/* Header */}
@@ -36,10 +40,10 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
         className="flex justify-between items-center mb-8 pt-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
+          <h1 className="text-3xl font-bold text-gray-800">
             {t('children.select')}
           </h1>
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 text-sm mt-1">
             {t('children.choose_child')}
           </p>
         </div>
@@ -51,6 +55,89 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
         </button>
       </motion.div>
 
+      {/* Premium CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="mb-8 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 p-6 rounded-3xl shadow-2xl text-white relative overflow-hidden"
+      >
+        {/* Animated background */}
+        <motion.div
+          animate={{ 
+            scale: [1, 1.1, 1],
+            rotate: [0, 5, -5, 0]
+          }}
+          transition={{ 
+            duration: 6, 
+            repeat: Infinity,
+            ease: "easeInOut" 
+          }}
+          className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{ 
+            scale: [1, 1.2, 1],
+            rotate: [0, -10, 10, 0]
+          }}
+          transition={{ 
+            duration: 8, 
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+          className="absolute -bottom-16 -left-16 w-32 h-32 bg-white/5 rounded-full blur-2xl"
+        />
+
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+              >
+                <Crown className="w-6 h-6 text-yellow-300" />
+              </motion.div>
+              <div>
+                <h2 className="text-xl font-bold">{t('premium.cta_title')}</h2>
+                <p className="text-white/80 text-sm">{t('premium.cta_subtitle')}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-yellow-300">{t('premium.cta_price')}</div>
+            </div>
+          </div>
+
+          <div className="mb-4 text-sm text-white/90">
+            <p className="mb-2">{t('premium.features_preview')}</p>
+            <div className="flex items-center gap-4 text-xs">
+              <span className="flex items-center gap-1">
+                <Zap className="w-3 h-3 text-yellow-300" />
+                {t('premium.free_limit')}
+              </span>
+            </div>
+          </div>
+
+          <motion.button
+            onClick={handlePremiumClick}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white py-3 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <Crown className="w-5 h-5 text-yellow-300" />
+            {t('premium.cta_button')}
+            <motion.div
+              animate={{ x: [0, 5, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="ml-1"
+            >
+              ✨
+            </motion.div>
+          </motion.button>
+        </div>
+      </motion.div>
+
       {/* Children Grid */}
       <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-8">
@@ -59,17 +146,17 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
               key={child.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.1 + 0.3 }}
               onClick={() => onSelectChild(child)}
-              whileHover={{ scale: 1.02, y: -2 }}
+              whileHover={{ scale: 1.02, y: -4 }}
               whileTap={{ scale: 0.98 }}
-              className={`relative bg-gradient-to-br ${getChildBg(child.gender)} p-6 rounded-2xl shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 text-left group overflow-hidden`}
+              className={`relative bg-gradient-to-br ${getChildBg(child.gender)} p-6 rounded-2xl shadow-lg border border-white/50 hover:shadow-2xl transition-all duration-300 text-left group overflow-hidden`}
             >
               {/* Sparkle effect */}
               <motion.div
                 animate={{ 
                   rotate: [0, 360],
-                  scale: [1, 1.1, 1] 
+                  scale: [1, 1.2, 1] 
                 }}
                 transition={{ 
                   duration: 4, 
@@ -90,10 +177,11 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
                     {child.name}
                   </h3>
                   <p className="text-sm text-gray-600 mb-2">
-                    {child.age} anos • {child.gender === 'female' ? 'Filha' : 'Filho'}
+                    {child.age} {t('children.years_old')} • {child.gender === 'female' ? t('children.daughter') : t('children.son')}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    {child.total_conversations} conversas
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <MessageCircle className="w-3 h-3" />
+                    {child.total_conversations} {t('children.conversations')}
                   </p>
                 </div>
               </div>
@@ -111,11 +199,11 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: children.length * 0.1 }}
+            transition={{ delay: children.length * 0.1 + 0.3 }}
             onClick={onCreateNew}
-            whileHover={{ scale: 1.02, y: -2 }}
+            whileHover={{ scale: 1.02, y: -4 }}
             whileTap={{ scale: 0.98 }}
-            className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl shadow-lg border-2 border-dashed border-gray-300 hover:border-purple-400 hover:shadow-xl transition-all duration-300 text-center group"
+            className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl shadow-lg border-2 border-dashed border-gray-300 hover:border-purple-400 hover:shadow-2xl transition-all duration-300 text-center group"
           >
             <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:animate-bounce">
               <Plus className="w-6 h-6 text-white" />
@@ -128,22 +216,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
             </p>
           </motion.button>
         </div>
-
-        {/* Info */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-center bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50"
-        >
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-600 mb-2">
-            <Baby className="w-4 h-4" />
-            <span>{t('children.limit_info')}</span>
-          </div>
-          <p className="text-xs text-gray-500">
-            {t('children.daily_limit')}
-          </p>
-        </motion.div>
       </div>
     </div>
   );
