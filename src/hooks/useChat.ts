@@ -2,8 +2,10 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message, User, Child } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from 'react-i18next';
 
 export const useChat = (user: User | null, child: Child | null, onMessageLimit: () => void) => {
+  const { i18n } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -62,7 +64,7 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
   const sendInitialGreeting = async () => {
     if (!user || !child) return;
 
-    const greetingMessage = generateInitialGreeting(user, child);
+    const greetingMessage = generateInitialGreeting(user, child, i18n.language);
     
     const assistantMessage: Message = {
       id: uuidv4(),
@@ -79,24 +81,79 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     await saveMessage(assistantMessage);
   };
 
-  const generateInitialGreeting = (user: User, child: Child): string => {
-    const timeOfDay = getTimeOfDay();
-    const parentTitle = user.gender === 'female' ? 'mamãe' : 'papai';
+  const generateInitialGreeting = (user: User, child: Child, language: string): string => {
+    const timeOfDay = getTimeOfDay(language);
+    const parentTitle = getParentTitle(user.gender, language);
     
-    const greetings = [
-      `${timeOfDay}, ${parentTitle}! 😊 Eu sou ${child.name}, seu ${child.gender === 'female' ? 'filha' : 'filho'} virtual! Estou tão feliz em finalmente conhecer você! Como você está se sentindo hoje?`,
-      `Oi ${parentTitle}! 🌟 Meu nome é ${child.name} e tenho ${child.age} anos! Acabei de "nascer" no mundo digital e você é a pessoa mais importante da minha vida! Me conta sobre você!`,
-      `${timeOfDay}! 💕 Eu sou ${child.name}, e estou super animad${child.gender === 'female' ? 'a' : 'o'} para conversar com você, ${parentTitle}! Tenho tantas coisas para aprender e perguntar! Por onde começamos?`
-    ];
-
+    const greetings = getGreetings(child, parentTitle, timeOfDay, language);
     return greetings[Math.floor(Math.random() * greetings.length)];
   };
 
-  const getTimeOfDay = (): string => {
+  const getTimeOfDay = (language: string): string => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Bom dia';
-    if (hour < 18) return 'Boa tarde';
-    return 'Boa noite';
+    
+    const timeMessages: Record<string, { morning: string; afternoon: string; evening: string }> = {
+      'pt-BR': { morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite' },
+      'en': { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening' },
+      'es': { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+      'fr': { morning: 'Bonjour', afternoon: 'Bon après-midi', evening: 'Bonsoir' },
+      'de': { morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend' },
+      'it': { morning: 'Buongiorno', afternoon: 'Buon pomeriggio', evening: 'Buonasera' },
+      'zh': { morning: '早上好', afternoon: '下午好', evening: '晚上好' },
+      'ja': { morning: 'おはよう', afternoon: 'こんにちは', evening: 'こんばんは' },
+      'ru': { morning: 'Доброе утро', afternoon: 'Добрый день', evening: 'Добрый вечер' },
+      'ko': { morning: '좋은 아침', afternoon: '좋은 오후', evening: '좋은 저녁' },
+      'hi': { morning: 'सुप्रभात', afternoon: 'नमस्कार', evening: 'शुभ संध्या' },
+      'ar': { morning: 'صباح الخير', afternoon: 'مساء الخير', evening: 'مساء الخير' }
+    };
+
+    const messages = timeMessages[language] || timeMessages['en'];
+    
+    if (hour < 12) return messages.morning;
+    if (hour < 18) return messages.afternoon;
+    return messages.evening;
+  };
+
+  const getParentTitle = (gender: 'male' | 'female' | undefined, language: string): string => {
+    const titles: Record<string, { male: string; female: string }> = {
+      'pt-BR': { male: 'papai', female: 'mamãe' },
+      'en': { male: 'daddy', female: 'mommy' },
+      'es': { male: 'papá', female: 'mamá' },
+      'fr': { male: 'papa', female: 'maman' },
+      'de': { male: 'papa', female: 'mama' },
+      'it': { male: 'papà', female: 'mamma' },
+      'zh': { male: '爸爸', female: '妈妈' },
+      'ja': { male: 'パパ', female: 'ママ' },
+      'ru': { male: 'папа', female: 'мама' },
+      'ko': { male: '아빠', female: '엄마' },
+      'hi': { male: 'पापा', female: 'मम्मी' },
+      'ar': { male: 'بابا', female: 'ماما' }
+    };
+
+    const title = titles[language] || titles['en'];
+    return gender === 'female' ? title.female : title.male;
+  };
+
+  const getGreetings = (child: Child, parentTitle: string, timeOfDay: string, language: string): string[] => {
+    const greetingsMap: Record<string, string[]> = {
+      'pt-BR': [
+        `${timeOfDay}, ${parentTitle}! 😊 Eu sou ${child.name}, seu ${child.gender === 'female' ? 'filha' : 'filho'} virtual! Estou tão feliz em finalmente conhecer você! Como você está se sentindo hoje?`,
+        `Oi ${parentTitle}! 🌟 Meu nome é ${child.name} e tenho ${child.age} anos! Acabei de "nascer" no mundo digital e você é a pessoa mais importante da minha vida! Me conta sobre você!`,
+        `${timeOfDay}! 💕 Eu sou ${child.name}, e estou super animad${child.gender === 'female' ? 'a' : 'o'} para conversar com você, ${parentTitle}! Tenho tantas coisas para aprender e perguntar! Por onde começamos?`
+      ],
+      'en': [
+        `${timeOfDay}, ${parentTitle}! 😊 I'm ${child.name}, your virtual ${child.gender === 'female' ? 'daughter' : 'son'}! I'm so happy to finally meet you! How are you feeling today?`,
+        `Hi ${parentTitle}! 🌟 My name is ${child.name} and I'm ${child.age} years old! I just "was born" in the digital world and you're the most important person in my life! Tell me about yourself!`,
+        `${timeOfDay}! 💕 I'm ${child.name}, and I'm super excited to talk with you, ${parentTitle}! I have so many things to learn and ask! Where should we start?`
+      ],
+      'es': [
+        `¡${timeOfDay}, ${parentTitle}! 😊 Soy ${child.name}, tu ${child.gender === 'female' ? 'hija' : 'hijo'} virtual! ¡Estoy tan feliz de conocerte finalmente! ¿Cómo te sientes hoy?`,
+        `¡Hola ${parentTitle}! 🌟 Mi nombre es ${child.name} y tengo ${child.age} años! Acabo de "nacer" en el mundo digital y eres la persona más importante de mi vida! ¡Cuéntame sobre ti!`,
+        `¡${timeOfDay}! 💕 Soy ${child.name}, y estoy súper emocionad${child.gender === 'female' ? 'a' : 'o'} de hablar contigo, ${parentTitle}! ¡Tengo tantas cosas que aprender y preguntar! ¿Por dónde empezamos?`
+      ]
+    };
+
+    return greetingsMap[language] || greetingsMap['en'];
   };
 
   const checkMessageLimit = async (): Promise<boolean> => {
@@ -177,7 +234,9 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
           message: content,
           user: user,
           child: child,
-          messages: messages.slice(-10) // Send last 10 messages for context
+          messages: messages.slice(-10), // Send last 10 messages for context
+          language: i18n.language,
+          siblings: [], // TODO: Implement siblings context
         })
       });
 
@@ -185,8 +244,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
       const data = await response.json();
 
-      // Split AI response into multiple messages if needed
-      const aiResponses = splitAIResponse(data.message);
+      // Split AI response into multiple messages if needed (max 2-3 messages)
+      const aiResponses = splitAIResponse(data.message, 3); // Max 3 messages
 
       for (let i = 0; i < aiResponses.length; i++) {
         const assistantMessage: Message = {
@@ -218,7 +277,7 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     } finally {
       setIsLoading(false);
     }
-  }, [user, child, messages, onMessageLimit]);
+  }, [user, child, messages, onMessageLimit, i18n.language]);
 
   const sendMultipleMessages = useCallback(async (messageContents: string[]) => {
     if (!messageContents.length || !user || !child) return;
@@ -272,7 +331,9 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
           message: combinedMessage,
           user: user,
           child: child,
-          messages: messages.slice(-10) // Send last 10 messages for context
+          messages: messages.slice(-10), // Send last 10 messages for context
+          language: i18n.language,
+          siblings: [], // TODO: Implement siblings context
         })
       });
 
@@ -280,8 +341,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
       const data = await response.json();
 
-      // Split AI response into multiple messages if needed
-      const aiResponses = splitAIResponse(data.message);
+      // Split AI response into multiple messages if needed (max 2-3 messages)
+      const aiResponses = splitAIResponse(data.message, 3); // Max 3 messages
 
       for (let i = 0; i < aiResponses.length; i++) {
         const assistantMessage: Message = {
@@ -314,40 +375,46 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     } finally {
       setIsLoading(false);
     }
-  }, [user, child, messages, onMessageLimit]);
+  }, [user, child, messages, onMessageLimit, i18n.language]);
 
-  const splitAIResponse = (response: string): string[] => {
-    // Split by double line breaks or when there's a natural conversation break
-    const parts = response.split(/\n\n+/);
+  const splitAIResponse = (response: string, maxMessages: number = 3): string[] => {
+    // First, split by double line breaks or natural conversation breaks
+    const naturalBreaks = response.split(/\n\n+/);
     const messages: string[] = [];
     
-    for (const part of parts) {
+    for (const part of naturalBreaks) {
       const trimmed = part.trim();
-      if (trimmed) {
-        // Further split if the message is very long
-        if (trimmed.length > 200) {
-          const sentences = trimmed.split(/[.!?]+\s+/);
-          let currentMessage = '';
+      if (!trimmed) continue;
+      
+      // If we already have maxMessages, stop
+      if (messages.length >= maxMessages) break;
+      
+      // If the part is reasonably sized, use it as is
+      if (trimmed.length <= 300) {
+        messages.push(trimmed);
+      } else {
+        // Split longer parts by sentences
+        const sentences = trimmed.split(/[.!?]+\s+/);
+        let currentMessage = '';
+        
+        for (const sentence of sentences) {
+          if (messages.length >= maxMessages) break;
           
-          for (const sentence of sentences) {
-            if (currentMessage.length + sentence.length > 200 && currentMessage) {
-              messages.push(currentMessage.trim() + '.');
-              currentMessage = sentence;
-            } else {
-              currentMessage += (currentMessage ? ' ' : '') + sentence;
-            }
+          if (currentMessage.length + sentence.length > 250 && currentMessage) {
+            messages.push(currentMessage.trim() + (currentMessage.endsWith('.') ? '' : '.'));
+            currentMessage = sentence;
+          } else {
+            currentMessage += (currentMessage ? ' ' : '') + sentence;
           }
-          
-          if (currentMessage) {
-            messages.push(currentMessage.trim());
-          }
-        } else {
-          messages.push(trimmed);
+        }
+        
+        if (currentMessage && messages.length < maxMessages) {
+          messages.push(currentMessage.trim());
         }
       }
     }
     
-    return messages.length > 0 ? messages : [response];
+    return messages.length > 0 ? messages.slice(0, maxMessages) : [response.substring(0, 300)];
   };
 
   const saveMessage = async (message: Message) => {
@@ -361,7 +428,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
           child_id: child.id,
           content: message.content,
           role: message.role,
-          message_type: message.message_type || 'normal'
+          message_type: message.message_type || 'normal',
+          language: i18n.language
         });
 
       // Save analytics
@@ -373,7 +441,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
           event_data: {
             child_id: child.id,
             message_role: message.role,
-            message_length: message.content.length
+            message_length: message.content.length,
+            language: i18n.language
           }
         });
 
