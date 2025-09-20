@@ -58,6 +58,10 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
       }
     } catch (error) {
       console.error('Error loading messages:', error);
+      // Se houver erro ao carregar, ainda assim envia greeting inicial
+      if (messages.length === 0) {
+        await sendInitialGreeting();
+      }
     }
   };
 
@@ -244,8 +248,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
       const data = await response.json();
 
-      // Split AI response into multiple messages if needed (max 2-3 messages)
-      const aiResponses = splitAIResponse(data.message, 3); // Max 3 messages
+      // Split AI response into multiple messages if needed (1-2 messages max)
+      const aiResponses = splitAIResponse(data.message, 2);
 
       for (let i = 0; i < aiResponses.length; i++) {
         const assistantMessage: Message = {
@@ -261,9 +265,9 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
         // Save AI response
         await saveMessage(assistantMessage);
 
-        // Add delay between multiple messages
+        // Add small delay between multiple messages for natural feel
         if (i < aiResponses.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 1500));
         }
       }
 
@@ -279,142 +283,44 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     }
   }, [user, child, messages, onMessageLimit, i18n.language]);
 
-  const sendMultipleMessages = useCallback(async (messageContents: string[]) => {
-    if (!messageContents.length || !user || !child) return;
-
-    // Check message limit
-    const canSend = await checkMessageLimit();
-    if (!canSend) {
-      onMessageLimit();
-      return;
-    }
-
-    // Add all user messages at once
-    const userMessages: Message[] = messageContents.map(content => ({
-      id: uuidv4(),
-      content: content.trim(),
-      role: 'user',
-      timestamp: new Date(),
-      status: 'sending'
-    }));
-
-    setMessages(prev => [...prev, ...userMessages]);
-    setIsLoading(true);
-
-    try {
-      // Save all user messages
-      for (const msg of userMessages) {
-        await saveMessage(msg);
-      }
-
-      // Update message count
-      await supabase
-        .from('users')
-        .update({ 
-          daily_message_count: user.daily_message_count + userMessages.length,
-          last_active_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-
-      // Mark user messages as sent
-      setMessages(prev => prev.map(msg => {
-        const userMsg = userMessages.find(um => um.id === msg.id);
-        return userMsg ? { ...msg, status: 'sent' } : msg;
-      }));
-
-      // Get AI response for all messages combined
-      const combinedMessage = messageContents.join('\n\n');
-      const response = await fetch('/.netlify/functions/kid-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: combinedMessage,
-          user: user,
-          child: child,
-          messages: messages.slice(-10), // Send last 10 messages for context
-          language: i18n.language,
-          siblings: [], // TODO: Implement siblings context
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to get AI response');
-
-      const data = await response.json();
-
-      // Split AI response into multiple messages if needed (max 2-3 messages)
-      const aiResponses = splitAIResponse(data.message, 3); // Max 3 messages
-
-      for (let i = 0; i < aiResponses.length; i++) {
-        const assistantMessage: Message = {
-          id: uuidv4(),
-          content: aiResponses[i],
-          role: 'assistant',
-          timestamp: new Date(),
-          status: 'sent'
-        };
-
-        setMessages(prev => [...prev, assistantMessage]);
-
-        // Save AI response
-        await saveMessage(assistantMessage);
-
-        // Add delay between multiple messages
-        if (i < aiResponses.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-      }
-
-    } catch (error) {
-      console.error('Error sending messages:', error);
-      
-      // Mark as error
-      setMessages(prev => prev.map(msg => {
-        const userMsg = userMessages.find(um => um.id === msg.id);
-        return userMsg ? { ...msg, status: 'error' } : msg;
-      }));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, child, messages, onMessageLimit, i18n.language]);
-
-  const splitAIResponse = (response: string, maxMessages: number = 3): string[] => {
-    // First, split by double line breaks or natural conversation breaks
-    const naturalBreaks = response.split(/\n\n+/);
-    const messages: string[] = [];
+  const splitAIResponse = (response: string, maxMessages: number = 2): string[] => {
+    // Remove any formatting that might cause issues
+    const cleanResponse = response.trim();
     
-    for (const part of naturalBreaks) {
-      const trimmed = part.trim();
-      if (!trimmed) continue;
-      
-      // If we already have maxMessages, stop
-      if (messages.length >= maxMessages) break;
-      
-      // If the part is reasonably sized, use it as is
-      if (trimmed.length <= 300) {
-        messages.push(trimmed);
-      } else {
-        // Split longer parts by sentences
-        const sentences = trimmed.split(/[.!?]+\s+/);
-        let currentMessage = '';
-        
-        for (const sentence of sentences) {
-          if (messages.length >= maxMessages) break;
-          
-          if (currentMessage.length + sentence.length > 250 && currentMessage) {
-            messages.push(currentMessage.trim() + (currentMessage.endsWith('.') ? '' : '.'));
-            currentMessage = sentence;
-          } else {
-            currentMessage += (currentMessage ? ' ' : '') + sentence;
-          }
-        }
-        
-        if (currentMessage && messages.length < maxMessages) {
-          messages.push(currentMessage.trim());
-        }
-      }
+    // If response is short, return as single message
+    if (cleanResponse.length <= 150) {
+      return [cleanResponse];
     }
     
-    return messages.length > 0 ? messages.slice(0, maxMessages) : [response.substring(0, 300)];
+    // Split by natural conversation breaks
+    const naturalBreaks = cleanResponse.split(/\n\n+/).filter(part => part.trim());
+    
+    // If we have natural breaks and it's not too many, use them
+    if (naturalBreaks.length > 1 && naturalBreaks.length <= maxMessages) {
+      return naturalBreaks.slice(0, maxMessages);
+    }
+    
+    // For longer responses, try to split more intelligently
+    const sentences = cleanResponse.split(/[.!?]+\s+/).filter(s => s.trim());
+    
+    if (sentences.length <= 1) {
+      return [cleanResponse];
+    }
+    
+    // Calculate split point
+    const midPoint = Math.ceil(sentences.length / 2);
+    
+    // Create two messages with natural sentence boundaries
+    const firstHalf = sentences.slice(0, midPoint).join('. ').trim();
+    const secondHalf = sentences.slice(midPoint).join('. ').trim();
+    
+    const messages = [];
+    if (firstHalf) messages.push(firstHalf + (firstHalf.endsWith('.') ? '' : '.'));
+    if (secondHalf && messages.length < maxMessages) {
+      messages.push(secondHalf + (secondHalf.endsWith('.') ? '' : '.'));
+    }
+    
+    return messages.length > 0 ? messages : [cleanResponse];
   };
 
   const saveMessage = async (message: Message) => {
@@ -463,7 +369,6 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     messages,
     isLoading,
     sendMessage,
-    sendMultipleMessages,
     retryMessage,
     messagesEndRef
   };
