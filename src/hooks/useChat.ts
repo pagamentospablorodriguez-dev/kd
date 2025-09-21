@@ -32,6 +32,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     if (!user || !child) return;
 
     try {
+      console.log('Loading messages for user:', user.id, 'child:', child.id);
+      
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -40,6 +42,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
         .order('created_at', { ascending: true });
 
       if (error) throw error;
+
+      console.log('Messages loaded:', data?.length || 0);
 
       const formattedMessages = data.map(msg => ({
         id: msg.id,
@@ -54,12 +58,14 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
       // If no messages, send initial greeting
       if (formattedMessages.length === 0) {
+        console.log('No messages found, sending initial greeting');
         await sendInitialGreeting();
       }
     } catch (error) {
       console.error('Error loading messages:', error);
       // Se houver erro ao carregar, ainda assim envia greeting inicial
       if (messages.length === 0) {
+        console.log('Error loading messages, sending fallback greeting');
         await sendInitialGreeting();
       }
     }
@@ -67,6 +73,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
   const sendInitialGreeting = async () => {
     if (!user || !child) return;
+
+    console.log('Sending initial greeting for:', child.name);
 
     const greetingMessage = generateInitialGreeting(user, child, i18n.language);
     
@@ -82,7 +90,12 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     setMessages([assistantMessage]);
 
     // Save to database
-    await saveMessage(assistantMessage);
+    try {
+      await saveMessage(assistantMessage);
+      console.log('Initial greeting saved successfully');
+    } catch (error) {
+      console.error('Error saving initial greeting:', error);
+    }
   };
 
   const generateInitialGreeting = (user: User, child: Child, language: string): string => {
@@ -188,7 +201,7 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
       return true;
     }
 
-    return user.daily_message_count < 20;
+    return user.daily_message_count < 15;
   };
 
   const sendMessage = useCallback(async (content: string) => {
