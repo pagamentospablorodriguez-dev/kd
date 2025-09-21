@@ -165,12 +165,11 @@ const resources = {
       
       'premium.cta_title': '✨ Premium Experience',
       'premium.cta_subtitle': 'Unlimited conversations + Exclusive features',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/month',
       'premium.cta_button': 'Unlock Premium',
       'premium.free_limit': 'Free version: 15 messages/day',
       'premium.free_limit_11': 'Free version: 11 messages/day',
       'premium.features_preview': 'Premium: ∞ messages • Complete history • Advanced evolution',
-      'premium.price_explanation': 'Your bank will convert this amount to USD automatically',
       
       'chat.placeholder': 'Type your message...',
       'chat.send': 'Send',
@@ -262,12 +261,11 @@ const resources = {
 
       'premium.cta_title': '✨ Experiencia Premium',
       'premium.cta_subtitle': 'Conversaciones ilimitadas + Características exclusivas',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/mes',
       'premium.cta_button': 'Desbloquear Premium',
       'premium.free_limit': 'Versión gratuita: 15 mensajes/día',
       'premium.free_limit_11': 'Versión gratuita: 11 mensajes/día',
       'premium.features_preview': 'Premium: ∞ mensajes • Historial completo • Evolución avanzada',
-      'premium.price_explanation': 'Tu banco convertirá este monto automáticamente a USD',
 
       'chat.placeholder': 'Escribe tu mensaje...',
       'chat.send': 'Enviar',
@@ -359,12 +357,11 @@ const resources = {
 
       'premium.cta_title': '✨ Expérience Premium',
       'premium.cta_subtitle': 'Conversations illimitées + Fonctionnalités exclusives',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/mois',
       'premium.cta_button': 'Débloquer Premium',
       'premium.free_limit': 'Version gratuite: 15 messages/jour',
       'premium.free_limit_11': 'Version gratuite: 11 messages/jour',
       'premium.features_preview': 'Premium: ∞ messages • Historique complet • Évolution avancée',
-      'premium.price_explanation': 'Votre banque convertira automatiquement ce montant en USD',
 
       'chat.placeholder': 'Tapez votre message...',
       'chat.send': 'Envoyer',
@@ -456,12 +453,11 @@ const resources = {
 
       'premium.cta_title': '✨ Premium-Erlebnis',
       'premium.cta_subtitle': 'Unbegrenzte Gespräche + Exklusive Funktionen',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/Monat',
       'premium.cta_button': 'Premium Freischalten',
       'premium.free_limit': 'Kostenlose Version: 15 Nachrichten/Tag',
       'premium.free_limit_11': 'Kostenlose Version: 11 Nachrichten/Tag',
       'premium.features_preview': 'Premium: ∞ Nachrichten • Vollständige Historie • Erweiterte Entwicklung',
-      'premium.price_explanation': 'Ihre Bank wird diesen Betrag automatisch in USD umwandeln',
 
       'chat.placeholder': 'Geben Sie Ihre Nachricht ein...',
       'chat.send': 'Senden',
@@ -553,12 +549,11 @@ const resources = {
 
       'premium.cta_title': '✨ Esperienza Premium',
       'premium.cta_subtitle': 'Conversazioni illimitate + Funzionalità esclusive',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/mese',
       'premium.cta_button': 'Sblocca Premium',
       'premium.free_limit': 'Versione gratuita: 15 messaggi/giorno',
       'premium.free_limit_11': 'Versione gratuita: 11 messaggi/giorno',
       'premium.features_preview': 'Premium: ∞ messaggi • Cronologia completa • Evoluzione avanzata',
-      'premium.price_explanation': 'La tua banca convertirà automaticamente questo importo in USD',
 
       'chat.placeholder': 'Scrivi il tuo messaggio...',
       'chat.send': 'Invia',
@@ -650,12 +645,11 @@ const resources = {
 
       'premium.cta_title': '✨ 高级体验',
       'premium.cta_subtitle': '无限对话 + 独家功能',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/月',
       'premium.cta_button': '解锁高级版',
       'premium.free_limit': '免费版本：每天15条消息',
       'premium.free_limit_11': '免费版本：每天11条消息',
       'premium.features_preview': '高级版：∞ 消息 • 完整历史 • 高级进化',
-      'premium.price_explanation': '您的银行将自动将此金额转换为美元',
 
       'chat.placeholder': '输入您的消息...',
       'chat.send': '发送',
@@ -747,12 +741,11 @@ const resources = {
 
       'premium.cta_title': '✨ プレミアム体験',
       'premium.cta_subtitle': '無制限の会話 + 限定機能',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/月',
       'premium.cta_button': 'プレミアムを解除',
       'premium.free_limit': '無料版：1日15メッセージ',
       'premium.free_limit_11': '無料版：1日11メッセージ',
       'premium.features_preview': 'プレミアム：∞ メッセージ • 完全履歴 • 高度進化',
-      'premium.price_explanation': 'あなたの銀行がこの金額を自動的にUSDに変換します',
 
       'chat.placeholder': 'メッセージを入力...',
       'chat.send': '送信',
@@ -844,12 +837,11 @@ const resources = {
 
       'premium.cta_title': '✨ Премиум опыт',
       'premium.cta_subtitle': 'Безлимитные разговоры + Эксклюзивные функции',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/мес',
       'premium.cta_button': 'Разблокировать Премиум',
       'premium.free_limit': 'Бесплатная версия: 15 сообщений/день',
       'premium.free_limit_11': 'Бесплатная версия: 11 сообщений/день',
       'premium.features_preview': 'Премиум: ∞ сообщений • Полная история • Продвинутая эволюция',
-      'premium.price_explanation': 'Ваш банк автоматически конвертирует эту сумму в USD',
 
       'chat.placeholder': 'Введите ваше сообщение...',
       'chat.send': 'Отправить',
@@ -941,12 +933,11 @@ const resources = {
 
       'premium.cta_title': '✨ 프리미엄 경험',
       'premium.cta_subtitle': '무제한 대화 + 독점 기능',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/월',
       'premium.cta_button': '프리미엄 잠금해제',
       'premium.free_limit': '무료 버전: 하루 15메시지',
       'premium.free_limit_11': '무료 버전: 하루 11메시지',
       'premium.features_preview': '프리미엄: ∞ 메시지 • 완전한 기록 • 고급 진화',
-      'premium.price_explanation': '은행에서 이 금액을 USD로 자동 변환합니다',
 
       'chat.placeholder': '메시지를 입력하세요...',
       'chat.send': '보내기',
@@ -1038,12 +1029,11 @@ const resources = {
 
       'premium.cta_title': '✨ प्रीमियम अनुभव',
       'premium.cta_subtitle': 'असीमित बातचीत + विशेष सुविधाएं',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/माह',
       'premium.cta_button': 'प्रीमियम अनलॉक करें',
       'premium.free_limit': 'फ्री वर्जन: दिन में 15 मैसेज',
       'premium.free_limit_11': 'फ्री वर्जन: दिन में 11 मैसेज',
       'premium.features_preview': 'प्रीमियम: ∞ मैसेज • पूरा इतिहास • उन्नत विकास',
-      'premium.price_explanation': 'आपका बैंक इस राशि को अपने आप USD में बदल देगा',
 
       'chat.placeholder': 'अपना मैसेज टाइप करें...',
       'chat.send': 'भेजें',
@@ -1135,12 +1125,11 @@ const resources = {
 
       'premium.cta_title': '✨ تجربة مميزة',
       'premium.cta_subtitle': 'محادثات لا محدودة + مميزات حصرية',
-      'premium.cta_price': '$29 USD (R$ 159,50)',
+      'premium.cta_price': 'US$29/شهر',
       'premium.cta_button': 'إلغاء قفل المميز',
       'premium.free_limit': 'النسخة المجانية: 15 رسالة/يوم',
       'premium.free_limit_11': 'النسخة المجانية: 11 رسالة/يوم',
       'premium.features_preview': 'المميز: ∞ رسائل • تاريخ كامل • تطور متقدم',
-      'premium.price_explanation': 'سيحول بنكك هذا المبلغ تلقائياً إلى الدولار الأمريكي',
 
       'chat.placeholder': 'اكتب رسالتك...',
       'chat.send': 'إرسال',
