@@ -46,12 +46,9 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
     return '';
   };
 
-  const getPriceExplanation = () => {
+  const showPriceExplanation = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    if (!isPtBR) {
-      return t('limit.price_explanation');
-    }
-    return '';
+    return !isPtBR; // Só mostrar explicação para não brasileiros
   };
 
   return (
@@ -172,8 +169,8 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
                 />
               </div>
 
-              {getPriceExplanation() && (
-                <p className="text-xs text-gray-500 text-center mb-4">{getPriceExplanation()}</p>
+              {showPriceExplanation() && (
+                <p className="text-xs text-gray-500 text-center mb-4">{t('limit.price_explanation')}</p>
               )}
             </div>
 
@@ -214,9 +211,9 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
             {/* Garantia/Segurança */}
             <div className="px-6 pb-4 border-t border-gray-100 dark:border-gray-700 pt-4">
               <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-                <span>🔒 Pagamento Seguro</span>
-                <span>❤️ Sem Compromisso</span>
-                <span>⚡ Ativo Imediatamente</span>
+                <span>🔒 {t('limit.security.secure_payment')}</span>
+                <span>❤️ {t('limit.security.no_commitment')}</span>
+                <span>⚡ {t('limit.security.instant_activation')}</span>
               </div>
             </div>
           </motion.div>
