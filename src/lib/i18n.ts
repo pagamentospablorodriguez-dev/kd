@@ -69,6 +69,7 @@ const resources = {
       'premium.cta_price': 'R$ 29/mês',
       'premium.cta_button': 'Desbloquear Premium',
       'premium.free_limit': 'Versão gratuita: 15 mensagens/dia',
+      'premium.free_limit_11': 'Versão gratuita: 11 mensagens/dia',
       'premium.features_preview': 'Premium: ∞ mensagens • Histórico completo • Evolução avançada',
       
       // Chat
@@ -83,6 +84,7 @@ const resources = {
       
       // Limits
       'limit.title': 'Suas 15 mensagens gratuitas acabaram 💔',
+      'limit.title_11': 'Suas 11 mensagens gratuitas acabaram 💔',
       'limit.subtitle': 'está com saudades e esperando por você...',
       'limit.description': 'Que tal continuar essa conversa especial sem limites? Seu filho tem muito mais para compartilhar com você!',
       'limit.tomorrow': 'Esperar até amanhã (grátis)',
@@ -166,7 +168,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': 'Unlock Premium',
       'premium.free_limit': 'Free version: 15 messages/day',
+      'premium.free_limit_11': 'Free version: 11 messages/day',
       'premium.features_preview': 'Premium: ∞ messages • Complete history • Advanced evolution',
+      'premium.price_explanation': 'Your bank will convert this amount to USD automatically',
       
       'chat.placeholder': 'Type your message...',
       'chat.send': 'Send',
@@ -177,6 +181,7 @@ const resources = {
       'header.switch_child': 'Switch child',
       
       'limit.title': 'Your 15 free messages are over 💔',
+      'limit.title_11': 'Your 11 free messages are over 💔',
       'limit.subtitle': 'is missing you and waiting...',
       'limit.description': 'How about continuing this special conversation without limits? Your child has so much more to share with you!',
       'limit.tomorrow': 'Wait until tomorrow (free)',
@@ -189,6 +194,7 @@ const resources = {
       'limit.feature_proactive': 'Spontaneous messages',
       'limit.feature_memories': 'Special memories',
       'limit.feature_evolution': 'Advanced evolution',
+      'limit.price_explanation': 'This amount will be automatically converted by your bank to USD',
       
       'common.loading': 'Loading...',
       'common.error': 'Oops! Something went wrong',
@@ -259,7 +265,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': 'Desbloquear Premium',
       'premium.free_limit': 'Versión gratuita: 15 mensajes/día',
+      'premium.free_limit_11': 'Versión gratuita: 11 mensajes/día',
       'premium.features_preview': 'Premium: ∞ mensajes • Historial completo • Evolución avanzada',
+      'premium.price_explanation': 'Tu banco convertirá este monto automáticamente a USD',
 
       'chat.placeholder': 'Escribe tu mensaje...',
       'chat.send': 'Enviar',
@@ -270,6 +278,7 @@ const resources = {
       'header.switch_child': 'Cambiar hijo',
 
       'limit.title': 'Tus 15 mensajes gratuitos se acabaron 💔',
+      'limit.title_11': 'Tus 11 mensajes gratuitos se acabaron 💔',
       'limit.subtitle': 'te echa de menos y está esperando...',
       'limit.description': '¿Qué tal continuar esta conversación especial sin límites? ¡Tu hijo tiene mucho más que compartir contigo!',
       'limit.tomorrow': 'Esperar hasta mañana (gratis)',
@@ -282,6 +291,7 @@ const resources = {
       'limit.feature_proactive': 'Mensajes espontáneos',
       'limit.feature_memories': 'Memorias especiales',
       'limit.feature_evolution': 'Evolución avanzada',
+      'limit.price_explanation': 'Este monto será convertido automáticamente por tu banco a USD',
 
       'common.loading': 'Cargando...',
       'common.error': '¡Ups! Algo salió mal',
@@ -352,7 +362,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': 'Débloquer Premium',
       'premium.free_limit': 'Version gratuite: 15 messages/jour',
+      'premium.free_limit_11': 'Version gratuite: 11 messages/jour',
       'premium.features_preview': 'Premium: ∞ messages • Historique complet • Évolution avancée',
+      'premium.price_explanation': 'Votre banque convertira automatiquement ce montant en USD',
 
       'chat.placeholder': 'Tapez votre message...',
       'chat.send': 'Envoyer',
@@ -363,6 +375,7 @@ const resources = {
       'header.switch_child': 'Changer d\'enfant',
 
       'limit.title': 'Vos 15 messages gratuits sont terminés 💔',
+      'limit.title_11': 'Vos 11 messages gratuits sont terminés 💔',
       'limit.subtitle': 'vous manque et attend...',
       'limit.description': 'Que diriez-vous de continuer cette conversation spéciale sans limites? Votre enfant a tellement plus à partager avec vous!',
       'limit.tomorrow': 'Attendre jusqu\'à demain (gratuit)',
@@ -375,6 +388,7 @@ const resources = {
       'limit.feature_proactive': 'Messages spontanés',
       'limit.feature_memories': 'Souvenirs spéciaux',
       'limit.feature_evolution': 'Évolution avancée',
+      'limit.price_explanation': 'Ce montant sera automatiquement converti par votre banque en USD',
 
       'common.loading': 'Chargement...',
       'common.error': 'Oups! Quelque chose s\'est mal passé',
@@ -445,7 +459,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': 'Premium Freischalten',
       'premium.free_limit': 'Kostenlose Version: 15 Nachrichten/Tag',
+      'premium.free_limit_11': 'Kostenlose Version: 11 Nachrichten/Tag',
       'premium.features_preview': 'Premium: ∞ Nachrichten • Vollständige Historie • Erweiterte Entwicklung',
+      'premium.price_explanation': 'Ihre Bank wird diesen Betrag automatisch in USD umwandeln',
 
       'chat.placeholder': 'Geben Sie Ihre Nachricht ein...',
       'chat.send': 'Senden',
@@ -456,6 +472,7 @@ const resources = {
       'header.switch_child': 'Kind wechseln',
 
       'limit.title': 'Ihre 15 kostenlosen Nachrichten sind aufgebraucht 💔',
+      'limit.title_11': 'Ihre 11 kostenlosen Nachrichten sind aufgebraucht 💔',
       'limit.subtitle': 'vermisst Sie und wartet...',
       'limit.description': 'Wie wäre es, dieses besondere Gespräch ohne Grenzen fortzusetzen? Ihr Kind hat so viel mehr mit Ihnen zu teilen!',
       'limit.tomorrow': 'Bis morgen warten (kostenlos)',
@@ -468,6 +485,7 @@ const resources = {
       'limit.feature_proactive': 'Spontane Nachrichten',
       'limit.feature_memories': 'Besondere Erinnerungen',
       'limit.feature_evolution': 'Erweiterte Entwicklung',
+      'limit.price_explanation': 'Dieser Betrag wird von Ihrer Bank automatisch in USD umgewandelt',
 
       'common.loading': 'Wird geladen...',
       'common.error': 'Ups! Etwas ist schiefgelaufen',
@@ -538,7 +556,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': 'Sblocca Premium',
       'premium.free_limit': 'Versione gratuita: 15 messaggi/giorno',
+      'premium.free_limit_11': 'Versione gratuita: 11 messaggi/giorno',
       'premium.features_preview': 'Premium: ∞ messaggi • Cronologia completa • Evoluzione avanzata',
+      'premium.price_explanation': 'La tua banca convertirà automaticamente questo importo in USD',
 
       'chat.placeholder': 'Scrivi il tuo messaggio...',
       'chat.send': 'Invia',
@@ -549,6 +569,7 @@ const resources = {
       'header.switch_child': 'Cambia bambino',
 
       'limit.title': 'I tuoi 15 messaggi gratuiti sono finiti 💔',
+      'limit.title_11': 'I tuoi 11 messaggi gratuiti sono finiti 💔',
       'limit.subtitle': 'ti manca e sta aspettando...',
       'limit.description': 'Che ne dici di continuare questa conversazione speciale senza limiti? Il tuo bambino ha molto altro da condividere con te!',
       'limit.tomorrow': 'Aspettare fino a domani (gratis)',
@@ -561,6 +582,7 @@ const resources = {
       'limit.feature_proactive': 'Messaggi spontanei',
       'limit.feature_memories': 'Ricordi speciali',
       'limit.feature_evolution': 'Evoluzione avanzata',
+      'limit.price_explanation': 'La tua banca convertirà automaticamente questo importo in USD',
 
       'common.loading': 'Caricamento...',
       'common.error': 'Ops! Qualcosa è andato storto',
@@ -631,7 +653,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': '解锁高级版',
       'premium.free_limit': '免费版本：每天15条消息',
+      'premium.free_limit_11': '免费版本：每天11条消息',
       'premium.features_preview': '高级版：∞ 消息 • 完整历史 • 高级进化',
+      'premium.price_explanation': '您的银行将自动将此金额转换为美元',
 
       'chat.placeholder': '输入您的消息...',
       'chat.send': '发送',
@@ -642,6 +666,7 @@ const resources = {
       'header.switch_child': '切换孩子',
 
       'limit.title': '您的15条免费消息已用完 💔',
+      'limit.title_11': '您的11条免费消息已用完 💔',
       'limit.subtitle': '想念您并在等待...',
       'limit.description': '继续这次特殊的对话如何？您的孩子有更多东西想与您分享！',
       'limit.tomorrow': '等到明天（免费）',
@@ -654,6 +679,7 @@ const resources = {
       'limit.feature_proactive': '自发消息',
       'limit.feature_memories': '特殊记忆',
       'limit.feature_evolution': '高级进化',
+      'limit.price_explanation': '您的银行将自动将此金额转换为美元',
 
       'common.loading': '加载中...',
       'common.error': '哎呀！出了点问题',
@@ -724,7 +750,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': 'プレミアムを解除',
       'premium.free_limit': '無料版：1日15メッセージ',
+      'premium.free_limit_11': '無料版：1日11メッセージ',
       'premium.features_preview': 'プレミアム：∞ メッセージ • 完全履歴 • 高度進化',
+      'premium.price_explanation': 'あなたの銀行がこの金額を自動的にUSDに変換します',
 
       'chat.placeholder': 'メッセージを入力...',
       'chat.send': '送信',
@@ -735,6 +763,7 @@ const resources = {
       'header.switch_child': '子供を切り替え',
 
       'limit.title': '無料の15メッセージが終わりました 💔',
+      'limit.title_11': '無料の11メッセージが終わりました 💔',
       'limit.subtitle': 'があなたを恋しがって待っています...',
       'limit.description': 'この特別な会話を制限なく続けませんか？あなたの子供はもっとたくさんのことを共有したがっています！',
       'limit.tomorrow': '明日まで待つ（無料）',
@@ -747,6 +776,7 @@ const resources = {
       'limit.feature_proactive': '自発的メッセージ',
       'limit.feature_memories': '特別な思い出',
       'limit.feature_evolution': '高度な進化',
+      'limit.price_explanation': 'あなたの銀行がこの金額を自動的にUSDに変換します',
 
       'common.loading': '読み込み中...',
       'common.error': 'おっと！何かが間違いました',
@@ -817,7 +847,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': 'Разблокировать Премиум',
       'premium.free_limit': 'Бесплатная версия: 15 сообщений/день',
+      'premium.free_limit_11': 'Бесплатная версия: 11 сообщений/день',
       'premium.features_preview': 'Премиум: ∞ сообщений • Полная история • Продвинутая эволюция',
+      'premium.price_explanation': 'Ваш банк автоматически конвертирует эту сумму в USD',
 
       'chat.placeholder': 'Введите ваше сообщение...',
       'chat.send': 'Отправить',
@@ -828,6 +860,7 @@ const resources = {
       'header.switch_child': 'Сменить ребёнка',
 
       'limit.title': 'Ваши 15 бесплатных сообщений закончились 💔',
+      'limit.title_11': 'Ваши 11 бесплатных сообщений закончились 💔',
       'limit.subtitle': 'скучает и ждёт...',
       'limit.description': 'Как насчёт продолжения этого особенного разговора без ограничений? Ваш ребёнок хочет поделиться с вами ещё многим!',
       'limit.tomorrow': 'Подождать до завтра (бесплатно)',
@@ -840,6 +873,7 @@ const resources = {
       'limit.feature_proactive': 'Спонтанные сообщения',
       'limit.feature_memories': 'Особые воспоминания',
       'limit.feature_evolution': 'Продвинутая эволюция',
+      'limit.price_explanation': 'Ваш банк автоматически конвертирует эту сумму в USD',
 
       'common.loading': 'Загрузка...',
       'common.error': 'Упс! Что-то пошло не так',
@@ -910,7 +944,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': '프리미엄 잠금해제',
       'premium.free_limit': '무료 버전: 하루 15메시지',
+      'premium.free_limit_11': '무료 버전: 하루 11메시지',
       'premium.features_preview': '프리미엄: ∞ 메시지 • 완전한 기록 • 고급 진화',
+      'premium.price_explanation': '은행에서 이 금액을 USD로 자동 변환합니다',
 
       'chat.placeholder': '메시지를 입력하세요...',
       'chat.send': '보내기',
@@ -921,6 +957,7 @@ const resources = {
       'header.switch_child': '아이 바꾸기',
 
       'limit.title': '무료 15메시지가 끝났어요 💔',
+      'limit.title_11': '무료 11메시지가 끝났어요 💔',
       'limit.subtitle': '가 그리워하며 기다리고 있어요...',
       'limit.description': '이 특별한 대화를 제한 없이 계속해보는 건 어떨까요? 아이가 당신과 나누고 싶은 이야기가 아직 많아요!',
       'limit.tomorrow': '내일까지 기다리기 (무료)',
@@ -933,6 +970,7 @@ const resources = {
       'limit.feature_proactive': '자발적 메시지',
       'limit.feature_memories': '특별한 추억',
       'limit.feature_evolution': '고급 진화',
+      'limit.price_explanation': '은행에서 이 금액을 USD로 자동 변환합니다',
 
       'common.loading': '로딩 중...',
       'common.error': '앗! 문제가 발생했어요',
@@ -1003,7 +1041,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': 'प्रीमियम अनलॉक करें',
       'premium.free_limit': 'फ्री वर्जन: दिन में 15 मैसेज',
+      'premium.free_limit_11': 'फ्री वर्जन: दिन में 11 मैसेज',
       'premium.features_preview': 'प्रीमियम: ∞ मैसेज • पूरा इतिहास • उन्नत विकास',
+      'premium.price_explanation': 'आपका बैंक इस राशि को अपने आप USD में बदल देगा',
 
       'chat.placeholder': 'अपना मैसेज टाइप करें...',
       'chat.send': 'भेजें',
@@ -1014,6 +1054,7 @@ const resources = {
       'header.switch_child': 'बच्चा बदलें',
 
       'limit.title': 'आपके 15 फ्री मैसेज खत्म हो गए 💔',
+      'limit.title_11': 'आपके 11 फ्री मैसेज खत्म हो गए 💔',
       'limit.subtitle': 'आपकी याद में इंतजार कर रहा है...',
       'limit.description': 'इस खास बातचीत को बिना किसी सीमा के जारी रखने का क्या खयाल है? आपके बच्चे के पास आपके साथ साझा करने के लिए बहुत कुछ है!',
       'limit.tomorrow': 'कल तक इंतजार करें (फ्री)',
@@ -1026,6 +1067,7 @@ const resources = {
       'limit.feature_proactive': 'स्वतःस्फूर्त मैसेज',
       'limit.feature_memories': 'विशेष यादें',
       'limit.feature_evolution': 'उन्नत विकास',
+      'limit.price_explanation': 'आपका बैंक इस राशि को अपने आप USD में बदल देगा',
 
       'common.loading': 'लोड हो रहा है...',
       'common.error': 'ओह! कुछ गलत हुआ',
@@ -1096,7 +1138,9 @@ const resources = {
       'premium.cta_price': '$29 USD (R$ 159,50)',
       'premium.cta_button': 'إلغاء قفل المميز',
       'premium.free_limit': 'النسخة المجانية: 15 رسالة/يوم',
+      'premium.free_limit_11': 'النسخة المجانية: 11 رسالة/يوم',
       'premium.features_preview': 'المميز: ∞ رسائل • تاريخ كامل • تطور متقدم',
+      'premium.price_explanation': 'سيحول بنكك هذا المبلغ تلقائياً إلى الدولار الأمريكي',
 
       'chat.placeholder': 'اكتب رسالتك...',
       'chat.send': 'إرسال',
@@ -1107,6 +1151,7 @@ const resources = {
       'header.switch_child': 'تغيير الطفل',
 
       'limit.title': 'انتهت رسائلك المجانية الـ15 💔',
+      'limit.title_11': 'انتهت رسائلك المجانية الـ11 💔',
       'limit.subtitle': 'يشتاق لك وينتظر...',
       'limit.description': 'ما رأيك في متابعة هذه المحادثة المميزة بلا حدود؟ طفلك لديه الكثير ليشاركه معك!',
       'limit.tomorrow': 'الانتظار حتى الغد (مجاني)',
@@ -1119,6 +1164,7 @@ const resources = {
       'limit.feature_proactive': 'رسائل تلقائية',
       'limit.feature_memories': 'ذكريات خاصة',
       'limit.feature_evolution': 'تطور متقدم',
+      'limit.price_explanation': 'سيحول بنكك هذا المبلغ تلقائياً إلى الدولار الأمريكي',
 
       'common.loading': 'جاري التحميل...',
       'common.error': 'عذراً! حدث خطأ ما',
