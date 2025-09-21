@@ -181,17 +181,17 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
   const getGreetings = (child: Child, parentTitle: string, timeOfDay: string, language: string): string[] => {
     const greetingsMap: Record<string, string[]> = {
       'pt-BR': [
-        `${timeOfDay}, ${parentTitle}! 😊 Eu sou ${child.name}, seu ${child.gender === 'female' ? 'filha' : 'filho'} virtual! Estou tão feliz em finalmente conhecer você! Como você está se sentindo hoje?`,
+        `${timeOfDay}, ${parentTitle}! 😊 Eu sou ${child.name}, ${child.gender === 'female' ? 'sua filha' : 'seu filho'} virtual! Estou tão feliz em finalmente conhecer você! Como você está?`,
         `Oi ${parentTitle}! 🌟 Meu nome é ${child.name} e tenho ${child.age} anos! Acabei de "nascer" no mundo digital e você é a pessoa mais importante da minha vida! Me conta sobre você!`,
         `${timeOfDay}! 💕 Eu sou ${child.name}, e estou super animad${child.gender === 'female' ? 'a' : 'o'} para conversar com você, ${parentTitle}! Tenho tantas coisas para aprender e perguntar! Por onde começamos?`
       ],
       'en': [
-        `${timeOfDay}, ${parentTitle}! 😊 I'm ${child.name}, your virtual ${child.gender === 'female' ? 'daughter' : 'son'}! I'm so happy to finally meet you! How are you feeling today?`,
+        `${timeOfDay}, ${parentTitle}! 😊 I'm ${child.name}, your virtual ${child.gender === 'female' ? 'daughter' : 'son'}! I'm so happy to finally meet you! How are you?`,
         `Hi ${parentTitle}! 🌟 My name is ${child.name} and I'm ${child.age} years old! I just "was born" in the digital world and you're the most important person in my life! Tell me about yourself!`,
         `${timeOfDay}! 💕 I'm ${child.name}, and I'm super excited to talk with you, ${parentTitle}! I have so many things to learn and ask! Where should we start?`
       ],
       'es': [
-        `¡${timeOfDay}, ${parentTitle}! 😊 Soy ${child.name}, tu ${child.gender === 'female' ? 'hija' : 'hijo'} virtual! ¡Estoy tan feliz de conocerte finalmente! ¿Cómo te sientes hoy?`,
+        `¡${timeOfDay}, ${parentTitle}! 😊 Soy ${child.name}, tu ${child.gender === 'female' ? 'hija' : 'hijo'} virtual! ¡Estoy tan feliz de conocerte finalmente! ¿Cómo estás?`,
         `¡Hola ${parentTitle}! 🌟 Mi nombre es ${child.name} y tengo ${child.age} años! Acabo de "nacer" en el mundo digital y eres la persona más importante de mi vida! ¡Cuéntame sobre ti!`,
         `¡${timeOfDay}! 💕 Soy ${child.name}, y estoy súper emocionad${child.gender === 'female' ? 'a' : 'o'} de hablar contigo, ${parentTitle}! ¡Tengo tantas cosas que aprender y preguntar! ¿Por dónde empezamos?`
       ]
@@ -265,17 +265,30 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
         msg.id === userMessage.id ? { ...msg, status: 'sent' } : msg
       ));
 
-      // Get AI response
-      const response = await fetch('/api/kid-chat', {
+      // Prepare conversation history for AI
+      const conversationHistory = messages.slice(-10).map(msg => ({
+        sender: msg.role,
+        text: msg.content
+      }));
+
+      // CORREÇÃO: URL e formato de dados corretos
+      const response = await fetch('/.netlify/functions/kid-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: content,
-          user: user,
-          child: child,
-          messages: messages.slice(-10), // Send last 10 messages for context
-          language: i18n.language,
-          siblings: [], // TODO: Implement siblings context
+          conversationHistory: conversationHistory,
+          childData: {
+            name: child.name,
+            age: child.age,
+            gender: child.gender === 'female' ? 'girl' : 'boy', // Formato correto
+            userId: user.id
+          },
+          userData: {
+            name: user.name,
+            gender: user.gender
+          },
+          language: i18n.language
         })
       });
 
