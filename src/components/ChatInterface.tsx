@@ -195,12 +195,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               animate={{ y: [0, -4, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <div className={`relative w-20 h-16 sm:w-32 sm:h-20 rounded-2xl flex items-center justify-center animate-pulse`}>
-                
-                
+              <div className="relative w-20 h-16 sm:w-32 sm:h-20 flex items-center justify-center">
                 <img src="/ninna.png" />
-
-                
               </div>
             </motion.div>
 
