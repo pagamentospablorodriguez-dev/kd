@@ -144,9 +144,58 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
 
           {currentStep.type === 'text' && (
             <div className="mb-6">
-              <input type="text" placeholder={currentStep.placeholder} value={getCurrentValue() as string || ''} onChange={(e) => handleInputChange(e.target.value)} className="w-full px-4 py-4 text-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors text-center" autoFocus/>
-        
-        {/* Footer */}
+              <input
+                type="text"
+                placeholder={currentStep.placeholder}
+                value={getCurrentValue() as string || ''}
+                onChange={(e) => handleInputChange(e.target.value)}
+                className="w-full px-4 py-4 text-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors text-center"
+                autoFocus
+              />
+            </div>
+          )}
+
+          {currentStep.type === 'select' && (
+            <div className="grid gap-3 mb-6">
+              {currentStep.options?.map(option => (
+                <motion.button
+                  key={option.value}
+                  onClick={() => handleSelectOption(option.value)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`p-4 border-2 rounded-xl text-lg font-semibold transition-all ${
+                    getCurrentValue() === option.value
+                      ? `bg-gradient-to-r ${getGradientClass()} text-white border-transparent shadow-lg`
+                      : `border-gray-200 hover:border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700`
+                  }`}
+                >
+                  {option.label}
+                </motion.button>
+              ))}
+            </div>
+          )}
+
+          <motion.button
+            onClick={handleNext}
+            disabled={!isStepComplete() || loading}
+            whileHover={{ scale: isStepComplete() ? 1.02 : 1 }}
+            whileTap={{ scale: isStepComplete() ? 0.98 : 1 }}
+            className={`w-full py-4 rounded-xl font-semibold text-lg transition-all flex items-center justify-center gap-2 ${
+              isStepComplete()
+                ? `bg-gradient-to-r ${getGradientClass()} text-white shadow-lg hover:shadow-xl`
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {step === steps.length - 1
+              ? loading
+                ? 'Criando...'
+                : t('setup.meet_child')
+              : t('setup.continue')}
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+        </motion.div>
+
+        {/* Footer (fora do step, sempre fixo embaixo) */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -157,24 +206,6 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
             <p className="font-semibold">{t('landing.footer_tagline')}</p>
             <p className="italic">{t('landing.footer_subtitle')}</p>
           </div>
-        </motion.div>
-            </div>
-          )}
-
-          {currentStep.type === 'select' && (
-            <div className="grid gap-3 mb-6">
-              {currentStep.options?.map(option => (
-                <motion.button key={option.value} onClick={() => handleSelectOption(option.value)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className={`p-4 border-2 rounded-xl text-lg font-semibold transition-all ${getCurrentValue() === option.value ? `bg-gradient-to-r ${getGradientClass()} text-white border-transparent shadow-lg` : `border-gray-200 hover:border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700`}`}>
-                  {option.label}
-                </motion.button>
-              ))}
-            </div>
-          )}
-
-          <motion.button onClick={handleNext} disabled={!isStepComplete() || loading} whileHover={{ scale: isStepComplete() ? 1.02 : 1 }} whileTap={{ scale: isStepComplete() ? 0.98 : 1 }} className={`w-full py-4 rounded-xl font-semibold text-lg transition-all flex items-center justify-center gap-2 ${isStepComplete() ? `bg-gradient-to-r ${getGradientClass()} text-white shadow-lg hover:shadow-xl` : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
-            {step === steps.length - 1 ? loading ? 'Criando...' : t('setup.meet_child') : t('setup.continue')}
-            <ArrowRight className="w-5 h-5" />
-          </motion.button>
         </motion.div>
       </motion.div>
     </div>
