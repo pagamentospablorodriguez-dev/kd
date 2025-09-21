@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
     >
       <div className="flex items-center justify-between max-w-4xl mx-auto">
         <div className="flex items-center gap-3">
-          {/* Sempre mostrar botão de trocar filho */}
+          {/* Sempre mostrar botão de trocar/criar filho */}
           <motion.button
             onClick={onBackToSelector}
             whileHover={{ scale: 1.05 }}
@@ -65,8 +65,8 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
             <Users className="w-5 h-5 text-gray-600" />
           </motion.button>
 
-          <div className={`w-10 h-10 bg-gradient-to-br ${gradientClass} rounded-xl flex items-center justify-center shadow-lg animate-pulse`}>
-            <Heart className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 flex items-center justify-center">
+            <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
           </div>
           
           <div>
