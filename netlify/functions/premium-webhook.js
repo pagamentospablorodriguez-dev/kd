@@ -40,7 +40,7 @@ exports.handler = async (event, context) => {
       
       // CORREÇÃO CRÍTICA: Usar as variáveis corretas do ambiente
       const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
       
       console.log('Supabase config:', { 
         url: supabaseUrl ? 'SET' : 'MISSING',
@@ -150,7 +150,7 @@ exports.handler = async (event, context) => {
       const { createClient } = require('@supabase/supabase-js');
       
       const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
       
       if (!supabaseUrl || !supabaseKey) {
         console.error('Missing Supabase configuration for cancellation');
