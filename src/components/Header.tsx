@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles, ArrowLeft, LogOut, Users } from 'lucide-react';
+import { Sparkles, LogOut, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Child } from '../types';
 
@@ -17,32 +17,12 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
   if (!child) return null;
 
   const colorScheme = child.gender === 'female' ? 'pink' : 'blue';
-  const gradientClass = colorScheme === 'pink' 
-    ? 'from-pink-500 to-rose-500' 
-    : 'from-blue-500 to-cyan-500';
   const textClass = colorScheme === 'pink'
     ? 'from-pink-600 to-rose-500'
     : 'from-blue-600 to-cyan-500';
 
   const getChildTitle = () => {
     return child.gender === 'female' ? t('header.your_daughter') : t('header.your_son');
-  };
-
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Clear local storage
-      localStorage.clear();
-      
-      // Force page reload as fallback
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Force page reload as fallback
-      window.location.href = '/';
-    }
   };
 
   return (
@@ -54,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
     >
       <div className="flex items-center justify-between max-w-4xl mx-auto">
         <div className="flex items-center gap-3">
-          {/* Sempre mostrar botão de trocar/criar filho */}
+          {/* Botão de trocar/criar filho */}
           <motion.button
             onClick={onBackToSelector}
             whileHover={{ scale: 1.05 }}
@@ -89,7 +69,7 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
           </motion.button>
 
           <motion.button
-            onClick={handleLogout}
+            onClick={onLogout}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
