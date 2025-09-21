@@ -20,39 +20,58 @@ exports.handler = async (event, context) => {
 
   try {
     console.log('Webhook received:', event.body);
-    
+
     // Parse webhook data from Kiwify
     const webhookData = JSON.parse(event.body);
-    
+
     console.log('Webhook data parsed:', webhookData);
 
     // Extract information from Kiwify webhook
-    // Adapte esses campos conforme a estrutura do webhook da Kiwify
     const status = webhookData.order_status || webhookData.status;
     const userEmail = webhookData.Customer?.email || webhookData.customer_email;
     const userId = webhookData.custom_fields?.user_id || webhookData.metadata?.user_id;
     const subscriptionId = webhookData.subscription_id || webhookData.order_id;
-    
+
     console.log('Extracted data:', { status, userEmail, userId, subscriptionId });
 
     // Verificar se o pagamento foi aprovado
     if (status === 'paid' || status === 'completed' || status === 'approved') {
       const { createClient } = require('@supabase/supabase-js');
-      const supabase = createClient(
-        process.env.VITE_SUPABASE_URL,
-        process.env.VITE_SUPABASE_SERVICE_ROLE_KEY
-      );
+      
+      // CORREÇÃO CRÍTICA: Usar as variáveis corretas do ambiente
+      const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+      
+      console.log('Supabase config:', { 
+        url: supabaseUrl ? 'SET' : 'MISSING',
+        key: supabaseKey ? 'SET' : 'MISSING'
+      });
+
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('Missing Supabase configuration');
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ error: 'Supabase configuration missing' })
+        };
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
       let targetUserId = userId;
 
       // Se não temos o userId diretamente, tentar encontrar pelo email
       if (!targetUserId && userEmail) {
         console.log('Looking for user by email:', userEmail);
-        const { data: userByEmail } = await supabase
+        const { data: userByEmail, error: findError } = await supabase
           .from('users')
           .select('id')
           .eq('email', userEmail)
           .single();
+        
+        if (findError) {
+          console.log('Error finding user by email:', findError.message);
+        }
         
         if (userByEmail) {
           targetUserId = userByEmail.id;
@@ -61,7 +80,7 @@ exports.handler = async (event, context) => {
       }
 
       if (!targetUserId) {
-        console.error('Could not determine user ID');
+        console.error('Could not determine user ID from email:', userEmail);
         return {
           statusCode: 400,
           headers,
@@ -93,23 +112,28 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Criar registro de assinatura
-      const { error: subscriptionError } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: targetUserId,
-          status: 'active',
-          plan_type: 'premium',
-          amount: 29.00,
-          currency: 'BRL',
-          started_at: new Date().toISOString(),
-          expires_at: expiresAt.toISOString(),
-          payment_provider: 'kiwify',
-          external_subscription_id: subscriptionId
-        });
+      // Criar registro de assinatura se a tabela existir
+      try {
+        const { error: subscriptionError } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: targetUserId,
+            status: 'active',
+            plan_type: 'premium',
+            amount: 29.00,
+            currency: 'BRL',
+            started_at: new Date().toISOString(),
+            expires_at: expiresAt.toISOString(),
+            payment_provider: 'kiwify',
+            external_subscription_id: subscriptionId
+          });
 
-      if (subscriptionError) {
-        console.error('Error creating subscription record:', subscriptionError);
+        if (subscriptionError) {
+          console.error('Error creating subscription record (table may not exist):', subscriptionError);
+          // Não falhar por causa disso - o importante é ativar o premium
+        }
+      } catch (subError) {
+        console.log('Subscription table may not exist yet:', subError.message);
       }
 
       console.log('Premium activated successfully for user:', targetUserId);
@@ -122,12 +146,22 @@ exports.handler = async (event, context) => {
     }
 
     // Handle other status events (cancellation, refund, etc.)
-    if (status === 'cancelled' || status === 'refunded' || status === 'chargeback') {
+    if (status === 'cancelled' || status === 'refunded' || status === 'chargedback') {
       const { createClient } = require('@supabase/supabase-js');
-      const supabase = createClient(
-        process.env.VITE_SUPABASE_URL,
-        process.env.VITE_SUPABASE_SERVICE_ROLE_KEY
-      );
+      
+      const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('Missing Supabase configuration for cancellation');
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ error: 'Supabase configuration missing' })
+        };
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
       let targetUserId = userId;
 
@@ -155,13 +189,17 @@ exports.handler = async (event, context) => {
           })
           .eq('id', targetUserId);
 
-        // Atualizar status da assinatura
-        await supabase
-          .from('subscriptions')
-          .update({
-            status: status === 'cancelled' ? 'canceled' : 'expired'
-          })
-          .eq('external_subscription_id', subscriptionId);
+        // Atualizar status da assinatura se a tabela existir
+        try {
+          await supabase
+            .from('subscriptions')
+            .update({
+              status: status === 'cancelled' ? 'canceled' : 'expired'
+            })
+            .eq('external_subscription_id', subscriptionId);
+        } catch (updateError) {
+          console.log('Could not update subscription status (table may not exist)');
+        }
 
         console.log('Premium deactivated for user:', targetUserId);
       }
@@ -172,7 +210,6 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({ message: 'Webhook processed successfully' })
     };
-
   } catch (error) {
     console.error('Webhook error:', error);
     return {
