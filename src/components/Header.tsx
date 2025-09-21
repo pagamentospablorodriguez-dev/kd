@@ -46,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({ child, onBackToSelector, onLogout, hasM
           </motion.button>
 
           <div className="w-10 h-10 flex items-center justify-center">
-            <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
+            <img src="/ninnabg.png" alt="Ninna" className="w-full h-full object-contain" />
           </div>
           
           <div>
