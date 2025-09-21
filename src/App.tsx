@@ -33,8 +33,10 @@ function App() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
+        console.log('Session found, checking user setup for:', session.user.id);
         await checkUserSetup(session.user.id);
       } else {
+        console.log('No session found, going to landing');
         setAppState('landing');
       }
     } catch (error) {
@@ -52,6 +54,7 @@ function App() {
         if (session) {
           // Handle Google OAuth callback
           if (session.user.app_metadata.provider === 'google') {
+            console.log('Google OAuth callback detected');
             // Create user in database if not exists
             const { data: existingUser } = await supabase
               .from('users')
@@ -60,6 +63,7 @@ function App() {
               .single();
 
             if (!existingUser) {
+              console.log('Creating new user from Google OAuth');
               await supabase
                 .from('users')
                 .insert({
@@ -74,6 +78,7 @@ function App() {
           
           await checkUserSetup(session.user.id);
         } else {
+          console.log('No session, clearing state');
           setUser(null);
           setChild(null);
           setChildren([]);
@@ -87,6 +92,8 @@ function App() {
 
   const checkUserSetup = async (userId: string) => {
     try {
+      console.log('Checking user setup for:', userId);
+      
       // Check if user exists in our database
       const { data: userData, error: userError } = await supabase
         .from('users')
@@ -99,10 +106,12 @@ function App() {
       }
 
       if (!userData) {
+        console.log('User not found in database, going to setup');
         setAppState('setup');
         return;
       }
 
+      console.log('User found:', userData.name);
       setUser(userData);
 
       // Get all children for this user
@@ -116,15 +125,18 @@ function App() {
         throw childrenError;
       }
 
+      console.log('Children found:', childrenData?.length || 0);
       setChildren(childrenData || []);
 
       if (!childrenData || childrenData.length === 0) {
+        console.log('No children found, going to setup');
         setAppState('setup');
         return;
       }
 
       // If only one child, select it automatically
       if (childrenData.length === 1) {
+        console.log('Only one child, selecting automatically:', childrenData[0].name);
         setChild(childrenData[0]);
         setAppState('chat');
       } else {
@@ -133,11 +145,13 @@ function App() {
         if (lastSelectedChildId) {
           const lastChild = childrenData.find(c => c.id === lastSelectedChildId);
           if (lastChild) {
+            console.log('Selecting last selected child:', lastChild.name);
             setChild(lastChild);
             setAppState('chat');
             return;
           }
         }
+        console.log('Multiple children, showing selector');
         setAppState('child_selector');
       }
     } catch (error) {
@@ -178,32 +192,41 @@ function App() {
   };
 
   const handleSelectChild = async (selectedChild: Child) => {
+    console.log('Selecting child:', selectedChild.name);
     setChild(selectedChild);
     localStorage.setItem('lastSelectedChild', selectedChild.id);
     setAppState('chat');
   };
 
   const handleBackToSelector = () => {
+    console.log('Going back to selector, children count:', children.length);
     setAppState('child_selector');
   };
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      localStorage.clear();
+      // Primeiro limpar estado local
       setUser(null);
       setChild(null);
       setChildren([]);
       setAppState('landing');
       
-      // Force refresh as fallback
-      window.location.href = '/';
+      // Limpar localStorage
+      localStorage.removeItem('lastSelectedChild');
+      localStorage.removeItem('supabase.auth.token');
+      
+      // Tentar logout do Supabase
+      await supabase.auth.signOut();
+      
+      // Forçar reload da página como fallback
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+      
     } catch (error) {
       console.error('Error logging out:', error);
-      // Force refresh as fallback
-      window.location.href = '/';
+      // Em caso de erro, forçar reload
+      window.location.reload();
     }
   };
 
