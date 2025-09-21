@@ -28,7 +28,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
   };
 
   const handlePremiumClick = () => {
-    // Determinar URL baseado no idioma
     const isPtBR = i18n.language === 'pt-BR';
     const premiumUrl = isPtBR 
       ? 'https://pay.example.com/kid-ai-premium-br'
@@ -55,12 +54,13 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
             <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
           </div>
           <div>
-          <h1 className="text-3xl font-bold text-gray-800">
-            {t('children.select')}
-          </h1>
-          <p className="text-gray-600 text-sm mt-1">
-            {t('children.choose_child')}
-          </p>
+            <h1 className="text-3xl font-bold text-gray-800">
+              {t('children.select')}
+            </h1>
+            <p className="text-gray-600 text-sm mt-1">
+              {t('children.choose_child')}
+            </p>
+          </div>
         </div>
         <button
           onClick={onLogout}
@@ -229,7 +229,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
             <p className="text-sm text-gray-500">
               {t('children.add_child')}
             </p>
-         
           </motion.button>
         </div>
         
