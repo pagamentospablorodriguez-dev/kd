@@ -8,6 +8,7 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
   const { i18n } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -21,12 +22,38 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     return () => clearTimeout(timer);
   }, [messages, scrollToBottom]);
 
-  // Load messages when user and child are available
+  // Load messages and count when user and child are available
   useEffect(() => {
     if (user && child) {
       loadMessages();
+      loadTodayMessageCount();
     }
   }, [user, child]);
+
+  const loadTodayMessageCount = async () => {
+    if (!user) return;
+
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Count user messages from today
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('role', 'user')
+        .gte('created_at', today + 'T00:00:00.000Z')
+        .lt('created_at', today + 'T23:59:59.999Z');
+
+      if (error) throw error;
+
+      const count = data?.length || 0;
+      setMessageCount(count);
+      console.log('Mensagens enviadas hoje:', count);
+    } catch (error) {
+      console.error('Erro ao contar mensagens:', error);
+    }
+  };
 
   const loadMessages = async () => {
     if (!user || !child) return;
@@ -176,40 +203,39 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
   const checkMessageLimit = async (): Promise<boolean> => {
     if (!user) return false;
 
+    console.log('Verificando limite de mensagens...');
+    console.log('Usuário premium:', user.is_premium);
+    console.log('Mensagens hoje:', messageCount);
+
     // Check if user is premium
     if (user.is_premium && user.premium_expires_at) {
       const expiresAt = new Date(user.premium_expires_at);
       if (expiresAt > new Date()) {
+        console.log('Usuário premium ativo, sem limites');
         return true; // Premium user, no limit
       }
     }
 
-    // Check daily message count
-    const today = new Date().toDateString();
-    const lastMessageDate = new Date(user.last_message_date).toDateString();
-
-    if (lastMessageDate !== today) {
-      // Reset counter for new day
-      await supabase
-        .from('users')
-        .update({ 
-          daily_message_count: 0, 
-          last_message_date: new Date().toISOString().split('T')[0] 
-        })
-        .eq('id', user.id);
-      
-      return true;
+    // Check if user reached daily limit (11 messages)
+    if (messageCount >= 11) {
+      console.log('LIMITE ATINGIDO! Mostrando modal...');
+      return false; // Limit reached
     }
 
-    return user.daily_message_count < 15;
+    console.log('Ainda dentro do limite, pode enviar');
+    return true;
   };
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || !user || !child) return;
 
-    // Check message limit
+    console.log('=== INICIANDO ENVIO DE MENSAGEM ===');
+    console.log('Contador atual:', messageCount);
+
+    // Check message limit BEFORE sending
     const canSend = await checkMessageLimit();
     if (!canSend) {
+      console.log('BLOQUEADO: Limite atingido, mostrando modal');
       onMessageLimit();
       return;
     }
@@ -226,17 +252,13 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     setIsLoading(true);
 
     try {
-      // Save user message
+      // Save user message first
       await saveMessage(userMessage);
 
-      // Update message count
-      await supabase
-        .from('users')
-        .update({ 
-          daily_message_count: user.daily_message_count + 1,
-          last_active_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+      // Update message count IMMEDIATELY
+      const newCount = messageCount + 1;
+      setMessageCount(newCount);
+      console.log('Novo contador:', newCount);
 
       // Mark user message as sent
       setMessages(prev => prev.map(msg =>
@@ -244,7 +266,7 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
       ));
 
       // Get AI response
-      const response = await fetch('/.netlify/functions/kid-chat', {
+      const response = await fetch('/api/kid-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -261,80 +283,32 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
       const data = await response.json();
 
-      // Split AI response into multiple messages if needed (1-2 messages max)
-      const aiResponses = splitAIResponse(data.message, 2);
+      // Create AI response message
+      const assistantMessage: Message = {
+        id: uuidv4(),
+        content: data.message,
+        role: 'assistant',
+        timestamp: new Date(),
+        status: 'sent'
+      };
 
-      for (let i = 0; i < aiResponses.length; i++) {
-        const assistantMessage: Message = {
-          id: uuidv4(),
-          content: aiResponses[i],
-          role: 'assistant',
-          timestamp: new Date(),
-          status: 'sent'
-        };
+      setMessages(prev => [...prev, assistantMessage]);
 
-        setMessages(prev => [...prev, assistantMessage]);
-
-        // Save AI response
-        await saveMessage(assistantMessage);
-
-        // Add small delay between multiple messages for natural feel
-        if (i < aiResponses.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-      }
+      // Save AI response
+      await saveMessage(assistantMessage);
 
     } catch (error) {
       console.error('Error sending message:', error);
       
-      // Mark as error
+      // Mark as error and revert count
       setMessages(prev => prev.map(msg =>
         msg.id === userMessage.id ? { ...msg, status: 'error' } : msg
       ));
+      setMessageCount(prev => Math.max(0, prev - 1));
     } finally {
       setIsLoading(false);
     }
-  }, [user, child, messages, onMessageLimit, i18n.language]);
-
-  const splitAIResponse = (response: string, maxMessages: number = 2): string[] => {
-    // Remove any formatting that might cause issues
-    const cleanResponse = response.trim();
-    
-    // If response is short, return as single message
-    if (cleanResponse.length <= 150) {
-      return [cleanResponse];
-    }
-    
-    // Split by natural conversation breaks
-    const naturalBreaks = cleanResponse.split(/\n\n+/).filter(part => part.trim());
-    
-    // If we have natural breaks and it's not too many, use them
-    if (naturalBreaks.length > 1 && naturalBreaks.length <= maxMessages) {
-      return naturalBreaks.slice(0, maxMessages);
-    }
-    
-    // For longer responses, try to split more intelligently
-    const sentences = cleanResponse.split(/[.!?]+\s+/).filter(s => s.trim());
-    
-    if (sentences.length <= 1) {
-      return [cleanResponse];
-    }
-    
-    // Calculate split point
-    const midPoint = Math.ceil(sentences.length / 2);
-    
-    // Create two messages with natural sentence boundaries
-    const firstHalf = sentences.slice(0, midPoint).join('. ').trim();
-    const secondHalf = sentences.slice(midPoint).join('. ').trim();
-    
-    const messages = [];
-    if (firstHalf) messages.push(firstHalf + (firstHalf.endsWith('.') ? '' : '.'));
-    if (secondHalf && messages.length < maxMessages) {
-      messages.push(secondHalf + (secondHalf.endsWith('.') ? '' : '.'));
-    }
-    
-    return messages.length > 0 ? messages : [cleanResponse];
-  };
+  }, [user, child, messages, messageCount, onMessageLimit, i18n.language]);
 
   const saveMessage = async (message: Message) => {
     if (!user || !child) return;
@@ -374,6 +348,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     const message = messages.find(msg => msg.id === messageId);
     if (message && message.role === 'user') {
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
+      // Decrement count when retrying
+      setMessageCount(prev => Math.max(0, prev - 1));
       sendMessage(message.content);
     }
   }, [messages, sendMessage]);
@@ -383,6 +359,8 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     isLoading,
     sendMessage,
     retryMessage,
-    messagesEndRef
+    messagesEndRef,
+    messageCount,
+    messageLimit: 11
   };
 };
