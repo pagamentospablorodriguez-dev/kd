@@ -229,7 +229,7 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
             <p className="text-sm text-gray-500">
               {t('children.add_child')}
             </p>
-          </div>
+         
           </motion.button>
         </div>
         
