@@ -111,7 +111,7 @@ function App() {
         return;
       }
 
-      console.log('User found:', userData.name);
+      console.log('User found:', userData.name, 'Premium:', userData.is_premium);
       setUser(userData);
 
       // Get all children for this user
@@ -231,6 +231,8 @@ function App() {
   };
 
   const handleMessageLimit = () => {
+    console.log('=== LIMITE ATINGIDO ===');
+    console.log('Mostrando modal de limite...');
     setShowLimit(true);
   };
 
@@ -285,6 +287,7 @@ function App() {
           <motion.div key="child_selector">
             <ChildSelector 
               children={children}
+              user={user}
               onSelectChild={handleSelectChild}
               onCreateNew={() => setAppState('setup')}
               onLogout={handleLogout}
