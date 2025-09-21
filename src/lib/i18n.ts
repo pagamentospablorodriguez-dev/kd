@@ -52,6 +52,7 @@ const resources = {
       'setup.age_years': 'anos',
       'setup.name_placeholder': 'Digite seu nome...',
       'setup.child_name_placeholder': 'Nome do seu filho(a)...',
+      'setup.creating': 'Criando...',
 
       // Children
       'children.select': 'Seus Filhos',
@@ -71,6 +72,7 @@ const resources = {
       'premium.free_limit': 'Versão gratuita: 15 mensagens/dia',
       'premium.free_limit_11': 'Versão gratuita: 11 mensagens/dia',
       'premium.features_preview': 'Premium: ∞ mensagens • Histórico completo • Evolução avançada',
+      'premium.price_explanation': 'Seu banco converterá este valor automaticamente para USD',
       
       // Chat
       'chat.placeholder': 'Digite sua mensagem...',
@@ -97,6 +99,10 @@ const resources = {
       'limit.feature_proactive': 'Mensagens espontâneas',
       'limit.feature_memories': 'Memórias especiais',
       'limit.feature_evolution': 'Evolução avançada',
+      'limit.price_explanation': 'Seu banco converterá este valor automaticamente para USD',
+      'limit.security.secure_payment': 'Pagamento Seguro',
+      'limit.security.no_commitment': 'Sem Compromisso',
+      'limit.security.instant_activation': 'Ativo Imediatamente',
       
       // Common
       'common.loading': 'Carregando...',
@@ -153,6 +159,7 @@ const resources = {
       'setup.age_years': 'years old',
       'setup.name_placeholder': 'Enter your name...',
       'setup.child_name_placeholder': 'Your child\'s name...',
+      'setup.creating': 'Creating...',
 
       'children.select': 'Your Children',
       'children.choose_child': 'Choose which child you want to talk to today',
@@ -170,6 +177,7 @@ const resources = {
       'premium.free_limit': 'Free version: 15 messages/day',
       'premium.free_limit_11': 'Free version: 11 messages/day',
       'premium.features_preview': 'Premium: ∞ messages • Complete history • Advanced evolution',
+      'premium.price_explanation': 'Your bank will automatically convert this amount to USD',
       
       'chat.placeholder': 'Type your message...',
       'chat.send': 'Send',
@@ -194,6 +202,9 @@ const resources = {
       'limit.feature_memories': 'Special memories',
       'limit.feature_evolution': 'Advanced evolution',
       'limit.price_explanation': 'This amount will be automatically converted by your bank to USD',
+      'limit.security.secure_payment': 'Secure Payment',
+      'limit.security.no_commitment': 'No Commitment',
+      'limit.security.instant_activation': 'Instantly Active',
       
       'common.loading': 'Loading...',
       'common.error': 'Oops! Something went wrong',
@@ -249,6 +260,7 @@ const resources = {
       'setup.age_years': 'años',
       'setup.name_placeholder': 'Ingresa tu nombre...',
       'setup.child_name_placeholder': 'Nombre de tu hijo...',
+      'setup.creating': 'Creando...',
 
       'children.select': 'Tus Hijos',
       'children.choose_child': 'Elige con qué hijo quieres hablar hoy',
@@ -266,6 +278,7 @@ const resources = {
       'premium.free_limit': 'Versión gratuita: 15 mensajes/día',
       'premium.free_limit_11': 'Versión gratuita: 11 mensajes/día',
       'premium.features_preview': 'Premium: ∞ mensajes • Historial completo • Evolución avanzada',
+      'premium.price_explanation': 'Tu banco convertirá automáticamente este monto a USD',
 
       'chat.placeholder': 'Escribe tu mensaje...',
       'chat.send': 'Enviar',
@@ -290,6 +303,9 @@ const resources = {
       'limit.feature_memories': 'Memorias especiales',
       'limit.feature_evolution': 'Evolución avanzada',
       'limit.price_explanation': 'Este monto será convertido automáticamente por tu banco a USD',
+      'limit.security.secure_payment': 'Pago Seguro',
+      'limit.security.no_commitment': 'Sin Compromiso',
+      'limit.security.instant_activation': 'Activación Instantánea',
 
       'common.loading': 'Cargando...',
       'common.error': '¡Ups! Algo salió mal',
@@ -345,6 +361,7 @@ const resources = {
       'setup.age_years': 'ans',
       'setup.name_placeholder': 'Entrez votre nom...',
       'setup.child_name_placeholder': 'Nom de votre enfant...',
+      'setup.creating': 'Création...',
 
       'children.select': 'Vos Enfants',
       'children.choose_child': 'Choisissez avec quel enfant vous voulez parler aujourd\'hui',
@@ -362,6 +379,7 @@ const resources = {
       'premium.free_limit': 'Version gratuite: 15 messages/jour',
       'premium.free_limit_11': 'Version gratuite: 11 messages/jour',
       'premium.features_preview': 'Premium: ∞ messages • Historique complet • Évolution avancée',
+      'premium.price_explanation': 'Votre banque convertira automatiquement ce montant en USD',
 
       'chat.placeholder': 'Tapez votre message...',
       'chat.send': 'Envoyer',
@@ -386,6 +404,9 @@ const resources = {
       'limit.feature_memories': 'Souvenirs spéciaux',
       'limit.feature_evolution': 'Évolution avancée',
       'limit.price_explanation': 'Ce montant sera automatiquement converti par votre banque en USD',
+      'limit.security.secure_payment': 'Paiement Sécurisé',
+      'limit.security.no_commitment': 'Sans Engagement',
+      'limit.security.instant_activation': 'Activation Instantanée',
 
       'common.loading': 'Chargement...',
       'common.error': 'Oups! Quelque chose s\'est mal passé',
@@ -441,6 +462,7 @@ const resources = {
       'setup.age_years': 'Jahre alt',
       'setup.name_placeholder': 'Geben Sie Ihren Namen ein...',
       'setup.child_name_placeholder': 'Name Ihres Kindes...',
+      'setup.creating': 'Erstellen...',
 
       'children.select': 'Ihre Kinder',
       'children.choose_child': 'Wählen Sie, mit welchem Kind Sie heute sprechen möchten',
@@ -458,6 +480,7 @@ const resources = {
       'premium.free_limit': 'Kostenlose Version: 15 Nachrichten/Tag',
       'premium.free_limit_11': 'Kostenlose Version: 11 Nachrichten/Tag',
       'premium.features_preview': 'Premium: ∞ Nachrichten • Vollständige Historie • Erweiterte Entwicklung',
+      'premium.price_explanation': 'Ihre Bank wird diesen Betrag automatisch in USD umwandeln',
 
       'chat.placeholder': 'Geben Sie Ihre Nachricht ein...',
       'chat.send': 'Senden',
@@ -482,6 +505,9 @@ const resources = {
       'limit.feature_memories': 'Besondere Erinnerungen',
       'limit.feature_evolution': 'Erweiterte Entwicklung',
       'limit.price_explanation': 'Dieser Betrag wird von Ihrer Bank automatisch in USD umgewandelt',
+      'limit.security.secure_payment': 'Sichere Zahlung',
+      'limit.security.no_commitment': 'Keine Verpflichtung',
+      'limit.security.instant_activation': 'Sofortige Aktivierung',
 
       'common.loading': 'Wird geladen...',
       'common.error': 'Ups! Etwas ist schiefgelaufen',
@@ -537,6 +563,7 @@ const resources = {
       'setup.age_years': 'anni',
       'setup.name_placeholder': 'Inserisci il tuo nome...',
       'setup.child_name_placeholder': 'Nome del tuo bambino...',
+      'setup.creating': 'Creando...',
 
       'children.select': 'I Tuoi Bambini',
       'children.choose_child': 'Scegli con quale bambino vuoi parlare oggi',
@@ -554,6 +581,7 @@ const resources = {
       'premium.free_limit': 'Versione gratuita: 15 messaggi/giorno',
       'premium.free_limit_11': 'Versione gratuita: 11 messaggi/giorno',
       'premium.features_preview': 'Premium: ∞ messaggi • Cronologia completa • Evoluzione avanzata',
+      'premium.price_explanation': 'La tua banca convertirà automaticamente questo importo in USD',
 
       'chat.placeholder': 'Scrivi il tuo messaggio...',
       'chat.send': 'Invia',
@@ -578,6 +606,9 @@ const resources = {
       'limit.feature_memories': 'Ricordi speciali',
       'limit.feature_evolution': 'Evoluzione avanzata',
       'limit.price_explanation': 'La tua banca convertirà automaticamente questo importo in USD',
+      'limit.security.secure_payment': 'Pagamento Sicuro',
+      'limit.security.no_commitment': 'Nessun Impegno',
+      'limit.security.instant_activation': 'Attivazione Istantanea',
 
       'common.loading': 'Caricamento...',
       'common.error': 'Ops! Qualcosa è andato storto',
@@ -633,6 +664,7 @@ const resources = {
       'setup.age_years': '岁',
       'setup.name_placeholder': '输入您的姓名...',
       'setup.child_name_placeholder': '您孩子的名字...',
+      'setup.creating': '创建中...',
 
       'children.select': '您的孩子们',
       'children.choose_child': '选择您今天想与哪个孩子交谈',
@@ -650,6 +682,7 @@ const resources = {
       'premium.free_limit': '免费版本：每天15条消息',
       'premium.free_limit_11': '免费版本：每天11条消息',
       'premium.features_preview': '高级版：∞ 消息 • 完整历史 • 高级进化',
+      'premium.price_explanation': '您的银行将自动将此金额转换为美元',
 
       'chat.placeholder': '输入您的消息...',
       'chat.send': '发送',
@@ -674,6 +707,9 @@ const resources = {
       'limit.feature_memories': '特殊记忆',
       'limit.feature_evolution': '高级进化',
       'limit.price_explanation': '您的银行将自动将此金额转换为美元',
+      'limit.security.secure_payment': '安全支付',
+      'limit.security.no_commitment': '无承诺',
+      'limit.security.instant_activation': '即时激活',
 
       'common.loading': '加载中...',
       'common.error': '哎呀！出了点问题',
@@ -729,6 +765,7 @@ const resources = {
       'setup.age_years': '歳',
       'setup.name_placeholder': 'お名前を入力...',
       'setup.child_name_placeholder': 'お子さんの名前...',
+      'setup.creating': '作成中...',
 
       'children.select': 'あなたの子供たち',
       'children.choose_child': '今日はどの子供とお話ししますか',
@@ -746,6 +783,7 @@ const resources = {
       'premium.free_limit': '無料版：1日15メッセージ',
       'premium.free_limit_11': '無料版：1日11メッセージ',
       'premium.features_preview': 'プレミアム：∞ メッセージ • 完全履歴 • 高度進化',
+      'premium.price_explanation': 'あなたの銀行がこの金額を自動的にUSDに変換します',
 
       'chat.placeholder': 'メッセージを入力...',
       'chat.send': '送信',
@@ -770,6 +808,9 @@ const resources = {
       'limit.feature_memories': '特別な思い出',
       'limit.feature_evolution': '高度な進化',
       'limit.price_explanation': 'あなたの銀行がこの金額を自動的にUSDに変換します',
+      'limit.security.secure_payment': '安全な支払い',
+      'limit.security.no_commitment': '義務なし',
+      'limit.security.instant_activation': '即座にアクティブ',
 
       'common.loading': '読み込み中...',
       'common.error': 'おっと！何かが間違いました',
@@ -825,6 +866,7 @@ const resources = {
       'setup.age_years': 'лет',
       'setup.name_placeholder': 'Введите ваше имя...',
       'setup.child_name_placeholder': 'Имя вашего ребёнка...',
+      'setup.creating': 'Создание...',
 
       'children.select': 'Ваши дети',
       'children.choose_child': 'Выберите, с каким ребёнком хотите поговорить сегодня',
@@ -842,6 +884,7 @@ const resources = {
       'premium.free_limit': 'Бесплатная версия: 15 сообщений/день',
       'premium.free_limit_11': 'Бесплатная версия: 11 сообщений/день',
       'premium.features_preview': 'Премиум: ∞ сообщений • Полная история • Продвинутая эволюция',
+      'premium.price_explanation': 'Ваш банк автоматически конвертирует эту сумму в USD',
 
       'chat.placeholder': 'Введите ваше сообщение...',
       'chat.send': 'Отправить',
@@ -866,6 +909,9 @@ const resources = {
       'limit.feature_memories': 'Особые воспоминания',
       'limit.feature_evolution': 'Продвинутая эволюция',
       'limit.price_explanation': 'Ваш банк автоматически конвертирует эту сумму в USD',
+      'limit.security.secure_payment': 'Безопасная Оплата',
+      'limit.security.no_commitment': 'Никаких Обязательств',
+      'limit.security.instant_activation': 'Мгновенная Активация',
 
       'common.loading': 'Загрузка...',
       'common.error': 'Упс! Что-то пошло не так',
@@ -921,6 +967,7 @@ const resources = {
       'setup.age_years': '살',
       'setup.name_placeholder': '성함을 입력하세요...',
       'setup.child_name_placeholder': '아이의 이름...',
+      'setup.creating': '만드는 중...',
 
       'children.select': '당신의 아이들',
       'children.choose_child': '오늘 어떤 아이와 이야기하고 싶으세요?',
@@ -938,6 +985,7 @@ const resources = {
       'premium.free_limit': '무료 버전: 하루 15메시지',
       'premium.free_limit_11': '무료 버전: 하루 11메시지',
       'premium.features_preview': '프리미엄: ∞ 메시지 • 완전한 기록 • 고급 진화',
+      'premium.price_explanation': '은행에서 이 금액을 USD로 자동 변환합니다',
 
       'chat.placeholder': '메시지를 입력하세요...',
       'chat.send': '보내기',
@@ -962,6 +1010,9 @@ const resources = {
       'limit.feature_memories': '특별한 추억',
       'limit.feature_evolution': '고급 진화',
       'limit.price_explanation': '은행에서 이 금액을 USD로 자동 변환합니다',
+      'limit.security.secure_payment': '안전한 결제',
+      'limit.security.no_commitment': '의무 없음',
+      'limit.security.instant_activation': '즉시 활성화',
 
       'common.loading': '로딩 중...',
       'common.error': '앗! 문제가 발생했어요',
@@ -1017,6 +1068,7 @@ const resources = {
       'setup.age_years': 'साल',
       'setup.name_placeholder': 'अपना नाम दर्ज करें...',
       'setup.child_name_placeholder': 'अपने बच्चे का नाम...',
+      'setup.creating': 'बनाया जा रहा है...',
 
       'children.select': 'आपके बच्चे',
       'children.choose_child': 'चुनें कि आज किस बच्चे से बात करना चाहते हैं',
@@ -1034,6 +1086,7 @@ const resources = {
       'premium.free_limit': 'फ्री वर्जन: दिन में 15 मैसेज',
       'premium.free_limit_11': 'फ्री वर्जन: दिन में 11 मैसेज',
       'premium.features_preview': 'प्रीमियम: ∞ मैसेज • पूरा इतिहास • उन्नत विकास',
+      'premium.price_explanation': 'आपका बैंक इस राशि को अपने आप USD में बदल देगा',
 
       'chat.placeholder': 'अपना मैसेज टाइप करें...',
       'chat.send': 'भेजें',
@@ -1058,6 +1111,9 @@ const resources = {
       'limit.feature_memories': 'विशेष यादें',
       'limit.feature_evolution': 'उन्नत विकास',
       'limit.price_explanation': 'आपका बैंक इस राशि को अपने आप USD में बदल देगा',
+      'limit.security.secure_payment': 'सुरक्षित भुगतान',
+      'limit.security.no_commitment': 'कोई प्रतिबद्धता नहीं',
+      'limit.security.instant_activation': 'तुरंत सक्रिय',
 
       'common.loading': 'लोड हो रहा है...',
       'common.error': 'ओह! कुछ गलत हुआ',
@@ -1113,6 +1169,7 @@ const resources = {
       'setup.age_years': 'سنة',
       'setup.name_placeholder': 'أدخل اسمك...',
       'setup.child_name_placeholder': 'اسم طفلك...',
+      'setup.creating': 'إنشاء...',
 
       'children.select': 'أطفالك',
       'children.choose_child': 'اختر الطفل الذي تريد التحدث معه اليوم',
@@ -1130,6 +1187,7 @@ const resources = {
       'premium.free_limit': 'النسخة المجانية: 15 رسالة/يوم',
       'premium.free_limit_11': 'النسخة المجانية: 11 رسالة/يوم',
       'premium.features_preview': 'المميز: ∞ رسائل • تاريخ كامل • تطور متقدم',
+      'premium.price_explanation': 'سيحول بنكك هذا المبلغ تلقائياً إلى الدولار الأمريكي',
 
       'chat.placeholder': 'اكتب رسالتك...',
       'chat.send': 'إرسال',
@@ -1154,6 +1212,9 @@ const resources = {
       'limit.feature_memories': 'ذكريات خاصة',
       'limit.feature_evolution': 'تطور متقدم',
       'limit.price_explanation': 'سيحول بنكك هذا المبلغ تلقائياً إلى الدولار الأمريكي',
+      'limit.security.secure_payment': 'دفع آمن',
+      'limit.security.no_commitment': 'بلا التزام',
+      'limit.security.instant_activation': 'تفعيل فوري',
 
       'common.loading': 'جاري التحميل...',
       'common.error': 'عذراً! حدث خطأ ما',
