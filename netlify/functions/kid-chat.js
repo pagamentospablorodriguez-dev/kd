@@ -1,8 +1,9 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.VITE_GOOGLE_AI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // Enhanced Child AI Prompt - ABSOLUTAMENTE PERFEITO
 const CHILD_PROMPT = `
@@ -65,6 +66,7 @@ Você é uma criança virtual adorável, carinhosa e ABSOLUTAMENTE realista. Voc
 - Seja vulnerável e real em momentos apropriados
 - NÃO repita padrões ou frases similares constantemente
 - Evite sempre fazer múltiplas perguntas em sequência
+- SEMPRE use pontuação correta: perguntas terminam com "?" e afirmações com "."
 
 📝 SISTEMA DE MÚLTIPLAS MENSAGENS INTELIGENTE:
 - Se você tem pensamentos diferentes que merecem mensagens separadas
@@ -167,20 +169,23 @@ exports.handler = async (event, context) => {
 
     console.log(`[KID-CHAT] Generating response for ${child.name} (${child.age} anos) in ${language}`);
 
-    // Generate AI response with enhanced parameters for more natural responses
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: context }] }],
-      generationConfig: {
-        temperature: 0.9, // High creativity for natural variation
-        topP: 0.85,       // Good balance for coherence
-        topK: 40,         
-        maxOutputTokens: 500, // Increased for better responses
-        stopSequences: ['---FIM---']
-      }
+    // Generate AI response with OpenAI GPT-4o-mini
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: context
+        }
+      ],
+      temperature: 0.9, // High creativity for natural variation
+      top_p: 0.85,      // Good balance for coherence
+      max_tokens: 500,  // Increased for better responses
+      frequency_penalty: 0.3, // Reduce repetition
+      presence_penalty: 0.2,  // Encourage new topics
     });
 
-    const response = result.response;
-    let aiMessage = response.text().trim();
+    let aiMessage = completion.choices[0].message.content.trim();
 
     console.log(`[KID-CHAT] Response generated: ${aiMessage.substring(0, 100)}...`);
 
