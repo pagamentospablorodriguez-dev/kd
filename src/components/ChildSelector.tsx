@@ -9,13 +9,15 @@ interface ChildSelectorProps {
   onSelectChild: (child: Child) => void;
   onCreateNew: () => void;
   onLogout: () => void;
+  user?: any; // Adicionar user para verificar premium
 }
 
 const ChildSelector: React.FC<ChildSelectorProps> = ({
   children,
   onSelectChild,
   onCreateNew,
-  onLogout
+  onLogout,
+  user
 }) => {
   const { t, i18n } = useTranslation();
 
@@ -38,7 +40,35 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
 
   const getPriceDisplay = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    return isPtBR ? 'R$ 29/mês' : '$29/month';
+    if (isPtBR) {
+      return 'R$ 29/mês';
+    } else {
+      // Para gringos, mostrar claramente a conversão
+      return 'US$29/month (R$ 159.50)';
+    }
+  };
+
+  const getPriceExplanation = () => {
+    const isPtBR = i18n.language === 'pt-BR';
+    if (!isPtBR) {
+      return t('premium.price_explanation');
+    }
+    return '';
+  };
+
+  // Verificar se deve mostrar o banner premium
+  const shouldShowPremiumBanner = () => {
+    if (!user) return true;
+    
+    // Se é premium e ainda não expirou
+    if (user.is_premium && user.premium_expires_at) {
+      const expiresAt = new Date(user.premium_expires_at);
+      if (expiresAt > new Date()) {
+        return false; // Não mostrar banner
+      }
+    }
+    
+    return true; // Mostrar banner
   };
 
   return (
@@ -70,88 +100,93 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
         </button>
       </motion.div>
 
-      {/* Premium CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="mb-8 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 p-6 rounded-3xl shadow-2xl text-white relative overflow-hidden"
-      >
-        {/* Animated background */}
+      {/* Premium CTA - Só mostrar se não for premium */}
+      {shouldShowPremiumBanner() && (
         <motion.div
-          animate={{ 
-            scale: [1, 1.1, 1],
-            rotate: [0, 5, -5, 0]
-          }}
-          transition={{ 
-            duration: 6, 
-            repeat: Infinity,
-            ease: "easeInOut" 
-          }}
-          className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, -10, 10, 0]
-          }}
-          transition={{ 
-            duration: 8, 
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1
-          }}
-          className="absolute -bottom-16 -left-16 w-32 h-32 bg-white/5 rounded-full blur-2xl"
-        />
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 p-6 rounded-3xl shadow-2xl text-white relative overflow-hidden"
+        >
+          {/* Animated background */}
+          <motion.div
+            animate={{ 
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{ 
+              duration: 6, 
+              repeat: Infinity,
+              ease: "easeInOut" 
+            }}
+            className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, -10, 10, 0]
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+            className="absolute -bottom-16 -left-16 w-32 h-32 bg-white/5 rounded-full blur-2xl"
+          />
 
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
-              >
-                <Crown className="w-6 h-6 text-yellow-300" />
-              </motion.div>
-              <div>
-                <h2 className="text-xl font-bold">{t('premium.cta_title')}</h2>
-                <p className="text-white/80 text-sm">{t('premium.cta_subtitle')}</p>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                  className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                >
+                  <Crown className="w-6 h-6 text-yellow-300" />
+                </motion.div>
+                <div>
+                  <h2 className="text-xl font-bold">{t('premium.cta_title')}</h2>
+                  <p className="text-white/80 text-sm">{t('premium.cta_subtitle')}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-yellow-300">{getPriceDisplay()}</div>
+                {getPriceExplanation() && (
+                  <p className="text-xs text-white/70 mt-1">{getPriceExplanation()}</p>
+                )}
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-yellow-300">{getPriceDisplay()}</div>
-            </div>
-          </div>
 
-          <div className="mb-4 text-sm text-white/90">
-            <p className="mb-2">{t('premium.features_preview')}</p>
-            <div className="flex items-center gap-4 text-xs">
-              <span className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-yellow-300" />
-                {t('premium.free_limit')}
-              </span>
+            <div className="mb-4 text-sm text-white/90">
+              <p className="mb-2">{t('premium.features_preview')}</p>
+              <div className="flex items-center gap-4 text-xs">
+                <span className="flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-yellow-300" />
+                  {t('premium.free_limit_11')}
+                </span>
+              </div>
             </div>
-          </div>
 
-          <motion.button
-            onClick={handlePremiumClick}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white py-3 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
-          >
-            <Crown className="w-5 h-5 text-yellow-300" />
-            {t('premium.cta_button')}
-            <motion.div
-              animate={{ x: [0, 5, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="ml-1"
+            <motion.button
+              onClick={handlePremiumClick}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white py-3 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
             >
-              ✨
-            </motion.div>
-          </motion.button>
-        </div>
-      </motion.div>
+              <Crown className="w-5 h-5 text-yellow-300" />
+              {t('premium.cta_button')}
+              <motion.div
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="ml-1"
+              >
+                ✨
+              </motion.div>
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Children Grid */}
       <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full">
