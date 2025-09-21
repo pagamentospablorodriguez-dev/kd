@@ -31,8 +31,8 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
     // Determinar URL baseado no idioma
     const isPtBR = i18n.language === 'pt-BR';
     const premiumUrl = isPtBR 
-      ? 'https://pay.kiwify.com.br/Xpj0Ymu'
-      : 'https://pay.kiwify.com.br/rdNpnqU';
+      ? 'https://pay.example.com/kid-ai-premium-br'
+      : 'https://pay.example.com/kid-ai-premium-usd';
     
     window.open(premiumUrl, '_blank');
   };
@@ -50,7 +50,11 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
         animate={{ y: 0, opacity: 1 }}
         className="flex justify-between items-center mb-8 pt-4"
       >
-        <div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 flex items-center justify-center">
+            <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
+          </div>
+          <div>
           <h1 className="text-3xl font-bold text-gray-800">
             {t('children.select')}
           </h1>
@@ -225,8 +229,22 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
             <p className="text-sm text-gray-500">
               {t('children.add_child')}
             </p>
+          </div>
           </motion.button>
         </div>
+        
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="text-center space-y-1 mt-8"
+        >
+          <div className="text-xs text-gray-400 space-y-1">
+            <p className="font-semibold">{t('landing.footer_tagline')}</p>
+            <p className="italic">{t('landing.footer_subtitle')}</p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
