@@ -29,7 +29,20 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
 
   const getPriceDisplay = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    return isPtBR ? 'R$ 29/mês' : '$29 USD (R$ 159,50)';
+    if (isPtBR) {
+      return 'R$ 29/mês';
+    } else {
+      // Para gringos, mostrar claramente a conversão
+      return 'US$29/month (R$ 159.50)';
+    }
+  };
+
+  const getPriceExplanation = () => {
+    const isPtBR = i18n.language === 'pt-BR';
+    if (!isPtBR) {
+      return t('limit.price_explanation');
+    }
+    return '';
   };
 
   const getTimeText = () => {
@@ -72,7 +85,7 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
                 <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-                {t('limit.title')}
+                {t('limit.title_11')}
               </h2>
               <p className={`font-semibold ${heartColor} mb-2`}>
                 {childName} {t('limit.subtitle')}
@@ -107,6 +120,13 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
                 {t('limit.tomorrow')}
               </motion.button>
 
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600 mb-1">{getPriceDisplay()}</div>
+                {getPriceExplanation() && (
+                  <p className="text-xs text-gray-500 mb-3">{getPriceExplanation()}</p>
+                )}
+              </div>
+
               <motion.button
                 onClick={handlePremiumClick}
                 whileHover={{ scale: 1.02 }}
@@ -119,7 +139,7 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
                 >
                   <Crown className="w-5 h-5" />
                 </motion.div>
-                {t('limit.premium')} ({getPriceDisplay()})
+                {t('limit.premium')}
                 
                 {/* Shimmer effect */}
                 <motion.div
