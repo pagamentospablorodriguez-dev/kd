@@ -136,8 +136,8 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
 
         <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
           <div className="text-center mb-8">
-            <div className={`w-16 h-16 bg-gradient-to-br ${getGradientClass()} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
-              <currentStep.icon className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">{currentStep.title}</h2>
           </div>
@@ -145,6 +145,19 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
           {currentStep.type === 'text' && (
             <div className="mb-6">
               <input type="text" placeholder={currentStep.placeholder} value={getCurrentValue() as string || ''} onChange={(e) => handleInputChange(e.target.value)} className="w-full px-4 py-4 text-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors text-center" autoFocus/>
+        
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="fixed bottom-6 left-0 right-0 text-center space-y-1"
+        >
+          <div className="text-xs text-gray-400 space-y-1">
+            <p className="font-semibold">{t('landing.footer_tagline')}</p>
+            <p className="italic">{t('landing.footer_subtitle')}</p>
+          </div>
+        </motion.div>
             </div>
           )}
 
