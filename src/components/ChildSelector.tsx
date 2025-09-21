@@ -48,12 +48,9 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
     }
   };
 
-  const getPriceExplanation = () => {
+  const showPriceExplanation = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    if (!isPtBR) {
-      return t('premium.price_explanation');
-    }
-    return '';
+    return !isPtBR; // Só mostrar explicação para não brasileiros
   };
 
   // Verificar se deve mostrar o banner premium
@@ -152,8 +149,8 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-yellow-300">{getPriceDisplay()}</div>
-                {getPriceExplanation() && (
-                  <p className="text-xs text-white/70 mt-1">{getPriceExplanation()}</p>
+                {showPriceExplanation() && (
+                  <p className="text-xs text-white/70 mt-1">{t('premium.price_explanation')}</p>
                 )}
               </div>
             </div>
