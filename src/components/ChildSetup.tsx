@@ -188,7 +188,7 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
           >
             {step === steps.length - 1
               ? loading
-                ? 'Criando...'
+                ? t('setup.creating')
                 : t('setup.meet_child')
               : t('setup.continue')}
             <ArrowRight className="w-5 h-5" />
