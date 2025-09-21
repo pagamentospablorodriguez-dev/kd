@@ -29,7 +29,19 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
 
   const getPriceDisplay = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    return isPtBR ? 'R$ 29/mês' : '$29/month';
+    return isPtBR ? 'R$ 29/mês' : '$29 USD (R$ 159,50)';
+  };
+
+  const getTimeText = () => {
+    return t('limit.next_24_hours');
+  };
+
+  const getResetText = () => {
+    return t('limit.reset_text');
+  };
+
+  const getPremiumFeaturesText = () => {
+    return t('limit.premium_includes');
   };
 
   return (
@@ -54,19 +66,10 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
               <X className="w-5 h-5 text-gray-500" />
             </button>
 
-            {/* Sad Child Illustration */}
+            {/* Logo */}
             <div className="text-center mb-6">
-              <div className={`w-20 h-20 bg-gradient-to-br ${gradientClass} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg relative`}>
-                <Heart className={`w-10 h-10 text-white`} />
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -top-2 -right-2"
-                >
-                  <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center text-xs">
-                    😢
-                  </div>
-                </motion.div>
+              <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
                 {t('limit.title')}
@@ -85,10 +88,10 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
               <div className="mt-4 p-4 bg-white dark:bg-gray-600 rounded-lg border-l-4 border-orange-400">
                 <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 mb-2">
                   <Clock className="w-5 h-5" />
-                  <span className="font-semibold">Próximas 24 horas</span>
+                  <span className="font-semibold">{getTimeText()}</span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Seu limite será renovado automaticamente amanhã às 00:00
+                  {getResetText()}
                 </p>
               </div>
             </div>
@@ -130,24 +133,24 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
             {/* Premium Features Preview */}
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-3">
-                Premium inclui:
+                {getPremiumFeaturesText()}
               </p>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${gradientClass}`} />
-                  <span className="text-gray-600 dark:text-gray-400">Mensagens ilimitadas</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('limit.feature_unlimited')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${gradientClass}`} />
-                  <span className="text-gray-600 dark:text-gray-400">Mensagens espontâneas</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('limit.feature_proactive')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${gradientClass}`} />
-                  <span className="text-gray-600 dark:text-gray-400">Memórias especiais</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('limit.feature_memories')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${gradientClass}`} />
-                  <span className="text-gray-600 dark:text-gray-400">Evolução avançada</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('limit.feature_evolution')}</span>
                 </div>
               </div>
             </div>
