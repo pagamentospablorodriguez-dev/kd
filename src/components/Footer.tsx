@@ -84,12 +84,7 @@ const Footer: React.FC<FooterProps> = ({ onAboutClick }) => {
             </button>
           </div>
 
-          {/* Tech Note */}
-          <div className="text-center">
-            <p className="text-xs text-gray-500 font-medium">
-              {t('footer.tech_note')}
-            </p>
-          </div>
+       
 
           {/* Copyright */}
           <div className="border-t border-gray-200 pt-4 text-center">
