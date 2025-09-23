@@ -143,6 +143,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ isOpen, onClose }) => {
                   transition={{ delay: 0.9, duration: 0.8 }}
                   className="relative"
                 >
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+                    <Zap className="w-6 h-6 text-pink-500" />
+                    {t('about.purpose_mission_title')}
+                  </h2>
                   <div className="absolute -inset-4 bg-gradient-to-r from-pink-100 via-purple-50 to-pink-100 rounded-3xl -z-10 opacity-50" />
                   
                   <div className="bg-white rounded-2xl p-8 lg:p-12 shadow-xl border border-gray-100">
