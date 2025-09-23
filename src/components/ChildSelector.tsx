@@ -264,18 +264,7 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
           </motion.button>
         </div>
         
-        {/* Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="text-center space-y-1 mt-8"
-        >
-          <div className="text-xs text-gray-400 space-y-1">
-            <p className="font-semibold">{t('landing.footer_tagline')}</p>
-            <p className="italic">{t('landing.footer_subtitle')}</p>
-          </div>
-        </motion.div>
+        
       </div>
     </div>
   );
