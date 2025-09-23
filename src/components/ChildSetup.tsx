@@ -195,18 +195,7 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
           </motion.button>
         </motion.div>
 
-        {/* Footer (fora do step, sempre fixo embaixo) */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="fixed bottom-6 left-0 right-0 text-center space-y-1"
-        >
-          <div className="text-xs text-gray-400 space-y-1">
-            <p className="font-semibold">{t('landing.footer_tagline')}</p>
-            <p className="italic">{t('landing.footer_subtitle')}</p>
-          </div>
-        </motion.div>
+       
       </motion.div>
     </div>
   );
