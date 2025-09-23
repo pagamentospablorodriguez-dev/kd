@@ -7,6 +7,8 @@ import AuthModal from './components/AuthModal';
 import ChildSetup from './components/ChildSetup';
 import ChildSelector from './components/ChildSelector';
 import LimitModal from './components/LimitModal';
+import Footer from './components/Footer';
+import AboutPage from './components/AboutPage';
 import { supabase } from './lib/supabase';
 import { User, Child, ChildSetupData } from './types';
 import './lib/i18n';
@@ -21,6 +23,7 @@ function App() {
   const [children, setChildren] = useState<Child[]>([]);
   const [showAuth, setShowAuth] = useState(false);
   const [showLimit, setShowLimit] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -274,24 +277,30 @@ function App() {
     <div className={`min-h-screen bg-gradient-to-br ${getBackgroundClass()} transition-colors duration-500`}>
       <AnimatePresence mode="wait">
         {appState === 'setup' && (
-          <motion.div key="setup">
-            <ChildSetup 
-              onComplete={handleSetupComplete} 
-              onBack={handleBackFromSetup}
-              showBackButton={children.length > 0}
-            />
+          <motion.div key="setup" className="min-h-screen flex flex-col">
+            <div className="flex-1">
+              <ChildSetup 
+                onComplete={handleSetupComplete} 
+                onBack={handleBackFromSetup}
+                showBackButton={children.length > 0}
+              />
+            </div>
+            <Footer onAboutClick={() => setShowAbout(true)} />
           </motion.div>
         )}
 
         {appState === 'child_selector' && (
-          <motion.div key="child_selector">
-            <ChildSelector 
-              children={children}
-              user={user}
-              onSelectChild={handleSelectChild}
-              onCreateNew={() => setAppState('setup')}
-              onLogout={handleLogout}
-            />
+          <motion.div key="child_selector" className="min-h-screen flex flex-col">
+            <div className="flex-1">
+              <ChildSelector 
+                children={children}
+                user={user}
+                onSelectChild={handleSelectChild}
+                onCreateNew={() => setAppState('setup')}
+                onLogout={handleLogout}
+              />
+            </div>
+            <Footer onAboutClick={() => setShowAbout(true)} />
           </motion.div>
         )}
 
@@ -301,16 +310,19 @@ function App() {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="min-h-screen flex items-center justify-center px-4 py-8"
+            className="min-h-screen flex flex-col"
           >
-            <ChatInterface 
-              isInitialState={true}
-              onFirstMessage={handleFirstMessage}
-              user={user}
-              child={child}
-              onMessageLimit={handleMessageLimit}
-              onShowAuth={() => setShowAuth(true)}
-            />
+            <div className="flex-1 flex items-center justify-center px-4 py-8">
+              <ChatInterface 
+                isInitialState={true}
+                onFirstMessage={handleFirstMessage}
+                user={user}
+                child={child}
+                onMessageLimit={handleMessageLimit}
+                onShowAuth={() => setShowAuth(true)}
+              />
+            </div>
+            <Footer onAboutClick={() => setShowAbout(true)} />
           </motion.div>
         )}
 
@@ -353,6 +365,11 @@ function App() {
         onClose={() => setShowLimit(false)}
         childName={child?.name || 'seu filho'}
         childGender={child?.gender || 'male'}
+      />
+
+      <AboutPage
+        isOpen={showAbout}
+        onClose={() => setShowAbout(false)}
       />
     </div>
   );
