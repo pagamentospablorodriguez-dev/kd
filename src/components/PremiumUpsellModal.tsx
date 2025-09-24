@@ -20,6 +20,19 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
     window.open(premiumUrl, '_blank');
   };
 
+  const handleClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    onClose();
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+
   const getPriceDisplay = () => {
     const isPtBR = i18n.language === 'pt-BR';
     if (isPtBR) {
@@ -50,7 +63,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
-          onClick={onClose}
+          onClick={handleBackdropClick}
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 30 }}
@@ -61,8 +74,9 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
           >
             {/* Close Button */}
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10"
+              type="button"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
