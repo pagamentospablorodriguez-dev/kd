@@ -29,13 +29,29 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
       : 'https://pay.kiwify.com.br/rdNpnqU';
 
-    // Adicionar userId como parâmetro s1 para o webhook conseguir identificar
+    // ✅ GARANTIDO: Adicionar userId como parâmetro s1 para o webhook conseguir identificar
     if (userId) {
       const separator = premiumUrl.includes('?') ? '&' : '?';
       premiumUrl += `${separator}s1=${userId}`;
+      console.log('🔗 LimitModal: Premium URL with tracking:', premiumUrl);
     }
 
     window.open(premiumUrl, '_blank');
+  };
+
+  // ✅ CORREÇÃO: Simplificar fechamento igual ao PremiumUpsellModal
+  const handleClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    onClose();
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
   };
 
   const getPriceDisplay = () => {
@@ -43,7 +59,6 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
     if (isPtBR) {
       return 'R$ 29/mês';
     } else {
-      // Para gringos, mostrar claramente a conversão
       return 'US$29/month';
     }
   };
@@ -69,7 +84,7 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
-          onClick={onClose}
+          onClick={handleBackdropClick}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -78,11 +93,14 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-auto my-4 relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 max-h-[95vh] overflow-y-auto"
           >
+            {/* ✅ CORREÇÃO: Botão X igual ao PremiumUpsellModal */}
             <button
-              onClick={onClose}
-              className="absolute top-3 right-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10"
+              onClick={handleClose}
+              className="absolute top-3 right-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
+              type="button"
+              aria-label="Fechar modal"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
             </button>
 
             {/* Header com Logo e Título */}
@@ -209,7 +227,7 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
               </motion.button>
 
               <motion.button
-                onClick={onClose}
+                onClick={handleClose}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full py-3 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
