@@ -17,12 +17,10 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
     const userId = getUserId();
     const isPtBR = i18n.language === 'pt-BR';
     
-    // Adicionar userId como parâmetro de tracking
     let premiumUrl = isPtBR 
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
       : 'https://pay.kiwify.com.br/rdNpnqU';
     
-    // Adicionar userId como parâmetro s1 para o webhook conseguir identificar
     if (userId) {
       const separator = premiumUrl.includes('?') ? '&' : '?';
       premiumUrl += `${separator}s1=${userId}`;
@@ -31,18 +29,12 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
     window.open(premiumUrl, '_blank');
   };
 
-  // CORREÇÃO: Simplificar o handleClose para garantir que funciona
-  const handleClose = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+  // CORREÇÃO: simplificado
+  const handleClose = () => {
     onClose();
   };
 
-  // CORREÇÃO: Simplificar o backdrop click
   const handleBackdropClick = (e: React.MouseEvent) => {
-    // Só fechar se clicou diretamente no backdrop
     if (e.target === e.currentTarget) {
       handleClose();
     }
@@ -50,30 +42,24 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
 
   const getPriceDisplay = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    if (isPtBR) {
-      return 'R$ 29/mês';
-    } else {
-      return 'US$29/month';
-    }
+    return isPtBR ? 'R$ 29/mês' : 'US$29/month';
   };
 
   const getPriceSubtext = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    if (!isPtBR) {
-      return '(R$ 159.50)';
-    }
-    return '';
+    return !isPtBR ? '(R$ 159.50)' : '';
   };
 
   const showPriceExplanation = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    return !isPtBR; // Só mostrar explicação para não brasileiros
+    return !isPtBR;
   };
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <motion.div
+          key="premium-modal"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -87,7 +73,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg mx-auto my-4 relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 max-h-[95vh] overflow-y-auto"
           >
-            {/* CORREÇÃO: Botão X com evento direto */}
+            {/* Botão X */}
             <button
               onClick={handleClose}
               className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
@@ -121,7 +107,6 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
 
             {/* Content */}
             <div className="relative z-10 p-6 sm:p-8">
-              
               {/* Header */}
               <div className="text-center mb-8">
                 <motion.div
@@ -147,7 +132,6 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
 
               {/* Price Section */}
               <div className="bg-gradient-to-br from-purple-600 via-pink-600 to-rose-600 rounded-2xl p-6 text-white mb-6 relative overflow-hidden">
-                {/* Animated background elements */}
                 <motion.div
                   animate={{ x: [-100, 300] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
@@ -255,7 +239,6 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
                   ✨
                 </motion.div>
 
-                {/* Pulse effect */}
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
