@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Heart, LogOut, Sparkles, Crown, Zap, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Child } from '../types';
+import PremiumUpsellModal from './PremiumUpsellModal';
 
 interface ChildSelectorProps {
   children: Child[];
@@ -20,6 +21,7 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
   user
 }) => {
   const { t, i18n } = useTranslation();
+  const [showPremiumUpsell, setShowPremiumUpsell] = useState(false);
 
   const getChildGradient = (gender: 'male' | 'female') => {
     return gender === 'female' ? 'from-pink-500 to-rose-500' : 'from-blue-500 to-cyan-500';
@@ -43,7 +45,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
     if (isPtBR) {
       return 'R$ 29/mês';
     } else {
-      // Para gringos, mostrar claramente a conversão
       return 'US$29/month (R$ 159.50)';
     }
   };
@@ -53,19 +54,32 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
     return !isPtBR; // Só mostrar explicação para não brasileiros
   };
 
-  // Verificar se deve mostrar o banner premium
-  const shouldShowPremiumBanner = () => {
-    if (!user) return true;
+  // Verificar se o usuário é premium
+  const isPremium = () => {
+    if (!user) return false;
     
-    // Se é premium e ainda não expirou
     if (user.is_premium && user.premium_expires_at) {
       const expiresAt = new Date(user.premium_expires_at);
-      if (expiresAt > new Date()) {
-        return false; // Não mostrar banner
-      }
+      return expiresAt > new Date();
     }
     
-    return true; // Mostrar banner
+    return false;
+  };
+
+  // Verificar se deve mostrar o banner premium
+  const shouldShowPremiumBanner = () => {
+    return !isPremium(); // Mostrar se não for premium
+  };
+
+  // Handle create new child - verificar se é premium
+  const handleCreateNewChild = () => {
+    if (!isPremium() && children.length >= 1) {
+      // Usuário free tentando criar segundo filho
+      setShowPremiumUpsell(true);
+    } else {
+      // Usuário premium ou primeiro filho
+      onCreateNew();
+    }
   };
 
   return (
@@ -247,7 +261,7 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: children.length * 0.1 + 0.3 }}
-            onClick={onCreateNew}
+            onClick={handleCreateNewChild}
             whileHover={{ scale: 1.02, y: -4 }}
             whileTap={{ scale: 0.98 }}
             className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl shadow-lg border-2 border-dashed border-gray-300 hover:border-purple-400 hover:shadow-2xl transition-all duration-300 text-center group"
@@ -261,11 +275,23 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
             <p className="text-sm text-gray-500">
               {t('children.add_child')}
             </p>
+            
+            {/* Premium badge for free users */}
+            {!isPremium() && children.length >= 1 && (
+              <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                <Crown className="w-3 h-3 inline mr-1" />
+                PREMIUM
+              </div>
+            )}
           </motion.button>
         </div>
-        
-        
       </div>
+
+      {/* Premium Upsell Modal */}
+      <PremiumUpsellModal
+        isOpen={showPremiumUpsell}
+        onClose={() => setShowPremiumUpsell(false)}
+      />
     </div>
   );
 };
