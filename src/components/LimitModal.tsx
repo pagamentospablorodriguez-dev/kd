@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Clock, Crown, X, Zap, Star, Infinity, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../hooks/useAuth';
 
 interface LimitModalProps {
   isOpen: boolean;
@@ -12,19 +13,28 @@ interface LimitModalProps {
 
 const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, childGender }) => {
   const { t, i18n } = useTranslation();
-  
+  const { getUserId } = useAuth();
+
   const colorScheme = childGender === 'female' ? 'pink' : 'blue';
   const gradientClass = colorScheme === 'pink' ? 'from-pink-500 to-rose-500' : 'from-blue-500 to-cyan-500';
   const heartColor = colorScheme === 'pink' ? 'text-pink-500' : 'text-blue-500';
   const glowClass = colorScheme === 'pink' ? 'shadow-pink-500/20' : 'shadow-blue-500/20';
 
   const handlePremiumClick = () => {
-    // Determinar URL baseado no idioma
+    const userId = getUserId();
     const isPtBR = i18n.language === 'pt-BR';
-    const premiumUrl = isPtBR 
+    
+    // Determinar URL baseado no idioma
+    let premiumUrl = isPtBR
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
       : 'https://pay.kiwify.com.br/rdNpnqU';
-    
+
+    // Adicionar userId como parâmetro s1 para o webhook conseguir identificar
+    if (userId) {
+      const separator = premiumUrl.includes('?') ? '&' : '?';
+      premiumUrl += `${separator}s1=${userId}`;
+    }
+
     window.open(premiumUrl, '_blank');
   };
 
