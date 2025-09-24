@@ -2,6 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crown, Star, Heart, Zap, Shield, MessageCircle, Baby, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 
 interface PremiumUpsellModalProps {
   isOpen: boolean;
@@ -10,26 +12,43 @@ interface PremiumUpsellModalProps {
 
 const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose }) => {
   const { t, i18n } = useTranslation();
+  const { getUserId } = useAuth();
+  const { getUserId } = useAuth();
 
   const handlePremiumClick = () => {
+    const userId = getUserId();
+    const userId = getUserId();
     const isPtBR = i18n.language === 'pt-BR';
-    const premiumUrl = isPtBR 
+    
+    // Adicionar userId como parâmetro de tracking
+    
+    // Adicionar userId como parâmetro de tracking
+    let premiumUrl = isPtBR 
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
       : 'https://pay.kiwify.com.br/rdNpnqU';
+    
+    // Adicionar userId como parâmetro s1 para o webhook conseguir identificar
+    if (userId) {
+      const separator = premiumUrl.includes('?') ? '&' : '?';
+      premiumUrl += `${separator}s1=${userId}`;
+    }
+    
+    // Adicionar userId como parâmetro s1 para o webhook conseguir identificar
+    if (userId) {
+      const separator = premiumUrl.includes('?') ? '&' : '?';
+      premiumUrl += `${separator}s1=${userId}`;
+    }
     
     window.open(premiumUrl, '_blank');
   };
 
-  const handleClose = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
+  const handleClose = () => {
     onClose();
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      handleClose();
+      onClose();
     }
   };
 
