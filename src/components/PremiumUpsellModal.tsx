@@ -17,18 +17,35 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
     const userId = getUserId();
     const isPtBR = i18n.language === 'pt-BR';
     
+    // Adicionar userId como parâmetro de tracking
     let premiumUrl = isPtBR 
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
       : 'https://pay.kiwify.com.br/rdNpnqU';
     
-    // ✅ GARANTIDO: Adicionar userId como parâmetro s1 para o webhook conseguir identificar
+    // Adicionar userId como parâmetro s1 para o webhook conseguir identificar
     if (userId) {
       const separator = premiumUrl.includes('?') ? '&' : '?';
       premiumUrl += `${separator}s1=${userId}`;
-      console.log('🔗 PremiumUpsellModal: Premium URL with tracking:', premiumUrl);
     }
     
     window.open(premiumUrl, '_blank');
+  };
+
+  // CORREÇÃO: Simplificar o handleClose para garantir que funciona
+  const handleClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    onClose();
+  };
+
+  // CORREÇÃO: Simplificar o backdrop click
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    // Só fechar se clicou diretamente no backdrop
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
   };
 
   const getPriceDisplay = () => {
@@ -61,7 +78,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
-          onClick={onClose}
+          onClick={handleBackdropClick}
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 30 }}
@@ -70,11 +87,14 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg mx-auto my-4 relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 max-h-[95vh] overflow-y-auto"
           >
+            {/* CORREÇÃO: Botão X com evento direto */}
             <button
-              onClick={onClose}
-              className="absolute top-3 right-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10"
+              onClick={handleClose}
+              className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
+              type="button"
+              aria-label="Fechar modal"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
             </button>
 
             {/* Animated Background */}
