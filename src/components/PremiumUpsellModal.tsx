@@ -31,13 +31,20 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
     window.open(premiumUrl, '_blank');
   };
 
-  const handleClose = () => {
+  // CORREÇÃO: Simplificar o handleClose para garantir que funciona
+  const handleClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     onClose();
   };
 
+  // CORREÇÃO: Simplificar o backdrop click
   const handleBackdropClick = (e: React.MouseEvent) => {
+    // Só fechar se clicou diretamente no backdrop
     if (e.target === e.currentTarget) {
-      onClose();
+      handleClose();
     }
   };
 
@@ -80,13 +87,14 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg mx-auto my-4 relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 max-h-[95vh] overflow-y-auto"
           >
-            {/* Close Button */}
+            {/* CORREÇÃO: Botão X com evento direto */}
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10"
+              className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
               type="button"
+              aria-label="Fechar modal"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
             </button>
 
             {/* Animated Background */}
