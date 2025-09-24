@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { Child } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import PremiumUpsellModal from './PremiumUpsellModal';
-import LimitModal from './LimitModal';
 
 interface ChildSelectorProps {
   children: Child[];
@@ -299,7 +298,7 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
       </div>
 
       {/* Premium Upsell Modal */}
-      <LimitModal
+      <PremiumUpsellModal
         isOpen={showPremiumUpsell}
         onClose={() => setShowPremiumUpsell(false)}
       />
