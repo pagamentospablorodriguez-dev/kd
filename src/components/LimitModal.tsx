@@ -116,7 +116,7 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
                     </div>
                     <div className="text-right">
                       <div className="text-lg font-bold text-gray-700 dark:text-gray-200">11/11</div>
-                      <div className="text-xs text-gray-500">mensagens</div>
+                      <div className="text-xs text-gray-500">{t('children.messages')}</div>
                     </div>
                   </div>
                 </div>
