@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Plus, Heart, LogOut, Sparkles, Crown, Zap, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Child } from '../types';
+import { useAuth } from '../hooks/useAuth';
 import PremiumUpsellModal from './PremiumUpsellModal';
 
 interface ChildSelectorProps {
@@ -21,6 +22,7 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
   user
 }) => {
   const { t, i18n } = useTranslation();
+  const { getUserId } = useAuth();
   const [showPremiumUpsell, setShowPremiumUpsell] = useState(false);
 
   const getChildGradient = (gender: 'male' | 'female') => {
@@ -32,11 +34,19 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
   };
 
   const handlePremiumClick = () => {
+    const userId = getUserId();
     const isPtBR = i18n.language === 'pt-BR';
-    const premiumUrl = isPtBR 
+    
+    let premiumUrl = isPtBR
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
       : 'https://pay.kiwify.com.br/rdNpnqU';
-    
+
+    // Adicionar userId como parâmetro s1 para o webhook conseguir identificar
+    if (userId) {
+      const separator = premiumUrl.includes('?') ? '&' : '?';
+      premiumUrl += `${separator}s1=${userId}`;
+    }
+
     window.open(premiumUrl, '_blank');
   };
 
@@ -57,12 +67,12 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
   // Verificar se o usuário é premium
   const isPremium = () => {
     if (!user) return false;
-    
+
     if (user.is_premium && user.premium_expires_at) {
       const expiresAt = new Date(user.premium_expires_at);
       return expiresAt > new Date();
     }
-    
+
     return false;
   };
 
