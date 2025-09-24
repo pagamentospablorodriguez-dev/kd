@@ -30,7 +30,18 @@ exports.handler = async (event, context) => {
     const status = webhookData.order_status || webhookData.status;
     const userEmail = webhookData.Customer?.email || webhookData.customer_email;
     const userName = webhookData.Customer?.full_name || webhookData.Customer?.first_name || webhookData.customer_name;
-    const userId = webhookData.custom_fields?.user_id || webhookData.metadata?.user_id;
+    
+    // NOVO: Tentar extrair userId dos parâmetros de tracking
+    let userId = webhookData.custom_fields?.user_id || webhookData.metadata?.user_id;
+    
+    // Verificar nos TrackingParameters também
+    if (!userId && webhookData.TrackingParameters) {
+      userId = webhookData.TrackingParameters.s1 || 
+               webhookData.TrackingParameters.s2 || 
+               webhookData.TrackingParameters.s3 ||
+               webhookData.TrackingParameters.utm_content;
+    }
+    
     const subscriptionId = webhookData.subscription_id || webhookData.order_id;
 
     console.log('Extracted data:', { status, userEmail, userName, userId, subscriptionId });
@@ -71,7 +82,6 @@ exports.handler = async (event, context) => {
         console.log('Looking for user by email:', userEmail);
         
         try {
-          // Usar a função RPC personalizada que bypass RLS
           console.log('Using RPC function to find user...');
           const { data: rpcResult, error: rpcError } = await supabase
             .rpc('find_user_by_email_for_webhook', { email_param: userEmail });
@@ -85,38 +95,6 @@ exports.handler = async (event, context) => {
           if (rpcResult && rpcResult.length > 0) {
             targetUserId = rpcResult[0].id;
             console.log('Found user via RPC:', targetUserId, rpcResult[0]);
-          } else {
-            // Se não achou via RPC, tentar busca direta com service role
-            console.log('RPC did not find user, trying direct search with service role...');
-            
-            const { data: directResult, error: directError } = await supabase
-              .from('users')
-              .select('id, email, name, is_premium, premium_expires_at')
-              .ilike('email', userEmail)
-              .limit(1);
-            
-            console.log('Direct search result:', { 
-              data: directResult, 
-              error: directError,
-              count: directResult?.length || 0 
-            });
-            
-            if (directResult && directResult.length > 0) {
-              targetUserId = directResult[0].id;
-              console.log('Found user via direct search:', targetUserId, directResult[0]);
-            } else {
-              // Lista todos os usuários para debug
-              console.log('No user found, listing all users for debugging...');
-              const { data: allUsers, error: listError } = await supabase
-                .from('users')
-                .select('id, email, name')
-                .limit(10);
-              
-              console.log('All users in database:', { 
-                users: allUsers?.map(u => ({ email: u.email, name: u.name })) || [], 
-                error: listError 
-              });
-            }
           }
         } catch (searchError) {
           console.error('Error in user search:', searchError);
@@ -142,6 +120,7 @@ exports.handler = async (event, context) => {
 
       console.log('Activating premium for user:', targetUserId, 'expires:', expiresAt.toISOString());
 
+      // CORREÇÃO PRINCIPAL: Usar service role adequadamente e verificar se update funcionou
       const { data: updatedUser, error: updateError } = await supabase
         .from('users')
         .update({
@@ -151,7 +130,7 @@ exports.handler = async (event, context) => {
           updated_at: new Date().toISOString()
         })
         .eq('id', targetUserId)
-        .select();
+        .select('id, email, name, is_premium, premium_expires_at');
 
       if (updateError) {
         console.error('Error updating user premium status:', updateError);
@@ -164,8 +143,31 @@ exports.handler = async (event, context) => {
 
       console.log('User updated successfully:', updatedUser);
 
-      // Criar registro de assinatura se a tabela existir
+      // Verificar se realmente atualizou
+      if (!updatedUser || updatedUser.length === 0) {
+        console.error('No user was updated - possible RLS issue');
+        
+        // Tentar novamente com uma abordagem diferente
+        try {
+          const { data: directUpdate, error: directError } = await supabase
+            .from('users')
+            .update({
+              is_premium: true,
+              premium_expires_at: expiresAt.toISOString(),
+              daily_message_count: 0,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', targetUserId);
+
+          console.log('Direct update attempt:', { data: directUpdate, error: directError });
+        } catch (retryError) {
+          console.error('Retry update failed:', retryError);
+        }
+      }
+
+      // Criar registro de assinatura - CORRIGIR RLS
       try {
+        // Primeiro, tentar inserir com service role
         const { data: subscriptionResult, error: subscriptionError } = await supabase
           .from('subscriptions')
           .insert({
@@ -178,12 +180,11 @@ exports.handler = async (event, context) => {
             expires_at: expiresAt.toISOString(),
             payment_provider: 'kiwify',
             external_subscription_id: subscriptionId
-          })
-          .select()
-          .single();
+          });
 
         if (subscriptionError) {
           console.error('Error creating subscription record:', subscriptionError);
+          // Não falhar o webhook por causa disso
         } else {
           console.log('Subscription record created:', subscriptionResult);
         }
@@ -199,7 +200,8 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ 
           message: 'Premium activated successfully',
           user_id: targetUserId,
-          expires_at: expiresAt.toISOString()
+          expires_at: expiresAt.toISOString(),
+          updated_user: updatedUser
         })
       };
     }
