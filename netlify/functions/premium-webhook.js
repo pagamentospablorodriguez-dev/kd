@@ -1,4 +1,4 @@
-// Webhook para ativar premium quando pagamento é confirmado - VERSÃO FINAL CORRIGIDA
+// Webhook para ativar premium quando pagamento é confirmado - VERSÃO CORRIGIDA FINAL
 exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -23,7 +23,6 @@ exports.handler = async (event, context) => {
 
     // Parse webhook data from Kiwify
     const webhookData = JSON.parse(event.body);
-
     console.log('Webhook data parsed:', webhookData);
 
     // Extract information from Kiwify webhook
@@ -51,24 +50,24 @@ exports.handler = async (event, context) => {
       const { createClient } = require('@supabase/supabase-js');
       
       const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       
       console.log('Supabase config:', { 
         url: supabaseUrl ? 'SET' : 'MISSING',
-        key: supabaseKey ? 'SET' : 'MISSING'
+        serviceKey: supabaseServiceKey ? 'SET' : 'MISSING'
       });
 
-      if (!supabaseUrl || !supabaseKey) {
-        console.error('Missing Supabase configuration');
+      if (!supabaseUrl || !supabaseServiceKey) {
+        console.error('Missing Supabase SERVICE_ROLE_KEY configuration');
         return {
           statusCode: 500,
           headers,
-          body: JSON.stringify({ error: 'Supabase configuration missing' })
+          body: JSON.stringify({ error: 'Supabase service role key missing - cannot update premium status' })
         };
       }
 
-      // Usar service role key para bypass RLS
-      const supabase = createClient(supabaseUrl, supabaseKey, {
+      // CRÍTICO: Usar APENAS service role key para bypass completo do RLS
+      const supabase = createClient(supabaseUrl, supabaseServiceKey, {
         auth: {
           autoRefreshToken: false,
           persistSession: false
@@ -120,54 +119,81 @@ exports.handler = async (event, context) => {
 
       console.log('Activating premium for user:', targetUserId, 'expires:', expiresAt.toISOString());
 
-      // CORREÇÃO PRINCIPAL: Usar service role adequadamente e verificar se update funcionou
-      const { data: updatedUser, error: updateError } = await supabase
-        .from('users')
-        .update({
-          is_premium: true,
-          premium_expires_at: expiresAt.toISOString(),
-          daily_message_count: 0, // Reset count
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', targetUserId)
-        .select('id, email, name, is_premium, premium_expires_at');
+      // CORREÇÃO CRÍTICA: Usar service role e verificar o resultado
+      try {
+        const { data: updatedUser, error: updateError } = await supabase
+          .from('users')
+          .update({
+            is_premium: true,
+            premium_expires_at: expiresAt.toISOString(),
+            daily_message_count: 0, // Reset count
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', targetUserId)
+          .select('id, email, name, is_premium, premium_expires_at');
 
-      if (updateError) {
-        console.error('Error updating user premium status:', updateError);
+        if (updateError) {
+          console.error('Error updating user premium status:', updateError);
+          return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: 'Failed to update user status: ' + updateError.message })
+          };
+        }
+
+        console.log('User update result:', updatedUser);
+
+        // Verificar se realmente atualizou
+        if (!updatedUser || updatedUser.length === 0) {
+          console.error('CRITICAL: No user was updated despite using service role');
+          
+          // Tentar abordagem alternativa: verificar se o usuário existe
+          const { data: userCheck, error: checkError } = await supabase
+            .from('users')
+            .select('id, email, name, is_premium, premium_expires_at')
+            .eq('id', targetUserId)
+            .single();
+
+          console.log('User existence check:', { data: userCheck, error: checkError });
+
+          if (userCheck) {
+            // Usuário existe, mas update não funcionou - possível problema de RLS
+            console.error('User exists but update failed - RLS may still be blocking service role');
+            return {
+              statusCode: 500,
+              headers,
+              body: JSON.stringify({ 
+                error: 'User exists but premium activation failed',
+                details: 'RLS policy may be blocking service role access',
+                user_found: userCheck
+              })
+            };
+          } else {
+            return {
+              statusCode: 404,
+              headers,
+              body: JSON.stringify({ error: 'User not found in database' })
+            };
+          }
+        }
+
+        console.log('✅ Premium activated successfully for user:', targetUserId);
+        console.log('Updated user data:', updatedUser[0]);
+
+      } catch (updateException) {
+        console.error('Exception during user update:', updateException);
         return {
           statusCode: 500,
           headers,
-          body: JSON.stringify({ error: 'Failed to update user status: ' + updateError.message })
+          body: JSON.stringify({ 
+            error: 'Exception during premium activation',
+            details: updateException.message
+          })
         };
       }
 
-      console.log('User updated successfully:', updatedUser);
-
-      // Verificar se realmente atualizou
-      if (!updatedUser || updatedUser.length === 0) {
-        console.error('No user was updated - possible RLS issue');
-        
-        // Tentar novamente com uma abordagem diferente
-        try {
-          const { data: directUpdate, error: directError } = await supabase
-            .from('users')
-            .update({
-              is_premium: true,
-              premium_expires_at: expiresAt.toISOString(),
-              daily_message_count: 0,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', targetUserId);
-
-          console.log('Direct update attempt:', { data: directUpdate, error: directError });
-        } catch (retryError) {
-          console.error('Retry update failed:', retryError);
-        }
-      }
-
-      // Criar registro de assinatura - CORRIGIR RLS
+      // Criar registro de assinatura (opcional, não deve falhar o webhook)
       try {
-        // Primeiro, tentar inserir com service role
         const { data: subscriptionResult, error: subscriptionError } = await supabase
           .from('subscriptions')
           .insert({
@@ -183,16 +209,14 @@ exports.handler = async (event, context) => {
           });
 
         if (subscriptionError) {
-          console.error('Error creating subscription record:', subscriptionError);
+          console.log('Note: Could not create subscription record:', subscriptionError.message);
           // Não falhar o webhook por causa disso
         } else {
-          console.log('Subscription record created:', subscriptionResult);
+          console.log('Subscription record created successfully');
         }
       } catch (subError) {
-        console.log('Subscription table may not exist yet:', subError.message);
+        console.log('Subscription table operation failed:', subError.message);
       }
-
-      console.log('Premium activated successfully for user:', targetUserId);
 
       return {
         statusCode: 200,
@@ -200,8 +224,7 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ 
           message: 'Premium activated successfully',
           user_id: targetUserId,
-          expires_at: expiresAt.toISOString(),
-          updated_user: updatedUser
+          expires_at: expiresAt.toISOString()
         })
       };
     }
@@ -211,9 +234,9 @@ exports.handler = async (event, context) => {
       const { createClient } = require('@supabase/supabase-js');
       
       const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       
-      if (!supabaseUrl || !supabaseKey) {
+      if (!supabaseUrl || !supabaseServiceKey) {
         console.error('Missing Supabase configuration for cancellation');
         return {
           statusCode: 500,
@@ -222,7 +245,7 @@ exports.handler = async (event, context) => {
         };
       }
 
-      const supabase = createClient(supabaseUrl, supabaseKey);
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
       let targetUserId = userId;
 
@@ -248,19 +271,6 @@ exports.handler = async (event, context) => {
             updated_at: new Date().toISOString()
           })
           .eq('id', targetUserId);
-
-        // Atualizar status da assinatura se a tabela existir
-        try {
-          await supabase
-            .from('subscriptions')
-            .update({
-              status: status === 'cancelled' ? 'canceled' : 'expired',
-              updated_at: new Date().toISOString()
-            })
-            .eq('external_subscription_id', subscriptionId);
-        } catch (updateError) {
-          console.log('Could not update subscription status (table may not exist)');
-        }
 
         console.log('Premium deactivated for user:', targetUserId);
       }
