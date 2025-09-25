@@ -69,6 +69,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
           onClick={onClose}
           onClick={onClose}
+          />
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
