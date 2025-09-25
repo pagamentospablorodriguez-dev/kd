@@ -21,66 +21,66 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
       : 'https://pay.kiwify.com.br/rdNpnqU';
     
+    // ✅ GARANTIDO: Adicionar userId como parâmetro s1 para o webhook conseguir identificar
+    // ✅ GARANTIDO: Adicionar userId como parâmetro s1 para o webhook conseguir identificar
     if (userId) {
       const separator = premiumUrl.includes('?') ? '&' : '?';
       premiumUrl += `${separator}s1=${userId}`;
+      console.log('🔗 PremiumUpsellModal: Premium URL with tracking:', premiumUrl);
+      console.log('🔗 PremiumUpsellModal: Premium URL with tracking:', premiumUrl);
     }
     
     window.open(premiumUrl, '_blank');
   };
 
-  // CORREÇÃO: simplificado
-  const handleClose = () => {
-    onClose();
-  };
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleClose();
+  // ✅ CORREÇÃO: Simplificar fechamento igual ao LimitModal
+  const handleClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
-  };
-
-  const getPriceDisplay = () => {
-    const isPtBR = i18n.language === 'pt-BR';
-    return isPtBR ? 'R$ 29/mês' : 'US$29/month';
+    if (isPtBR) {
+      return 'R$ 29/mês';
+    } else {
+      onClose();
+    }
   };
 
   const getPriceSubtext = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    return !isPtBR ? '(R$ 159.50)' : '';
+    if (!isPtBR) {
+      return '(R$ 159.50)';
+    }
+    return '';
   };
 
   const showPriceExplanation = () => {
     const isPtBR = i18n.language === 'pt-BR';
-    return !isPtBR;
+    return !isPtBR; // Só mostrar explicação para não brasileiros
   };
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {isOpen && (
         <motion.div
-          key="premium-modal"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
-          onClick={handleBackdropClick}
-        >
+          onClick={onClose}
+          onClick={onClose}
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: 30 }}
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg mx-auto my-4 relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 max-h-[95vh] overflow-y-auto"
-          >
-            {/* Botão X */}
-            <button
-              onClick={handleClose}
-              className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
-              type="button"
-              aria-label="Fechar modal"
+              onClick={onClose}
+              className="absolute top-3 right-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
+              onClick={onClose}
+              className="absolute top-3 right-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10"
             >
-              <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
             </button>
 
             {/* Animated Background */}
@@ -107,6 +107,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
 
             {/* Content */}
             <div className="relative z-10 p-6 sm:p-8">
+              
               {/* Header */}
               <div className="text-center mb-8">
                 <motion.div
@@ -132,6 +133,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
 
               {/* Price Section */}
               <div className="bg-gradient-to-br from-purple-600 via-pink-600 to-rose-600 rounded-2xl p-6 text-white mb-6 relative overflow-hidden">
+                {/* Animated background elements */}
                 <motion.div
                   animate={{ x: [-100, 300] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
@@ -239,11 +241,22 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
                   ✨
                 </motion.div>
 
+                {/* Pulse effect */}
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                   className="absolute inset-0 bg-white/10 rounded-2xl"
                 />
+              </motion.button>
+
+              {/* Botão "Continuar no Grátis" igual ao LimitModal */}
+              <motion.button
+                onClick={onClose}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-3 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-4"
+              >
+                ⏰ {t('limit.tomorrow')}
               </motion.button>
 
               {/* Guarantee */}
