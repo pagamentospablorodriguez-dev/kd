@@ -77,8 +77,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
             <button
               onClick={handleClose}
               className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
-              type="button"
-              aria-label="Fechar modal"
+            
             >
               <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
             </button>
