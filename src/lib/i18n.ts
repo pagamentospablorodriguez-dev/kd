@@ -85,6 +85,7 @@ const resources = {
       'premium.upsell.feature6': '💝 Momentos especiais',
       'premium.upsell.cta': 'Expandir Minha Família Agora',
       'premium.upsell.guarantee': '✅ 7 dias de garantia • ❌ Cancele quando quiser',
+      'premium.upsell.maybe_later': 'Talvez mais tarde',
       
       // Chat
       'chat.placeholder': 'Digite sua mensagem...',
@@ -229,6 +230,7 @@ const resources = {
       'premium.upsell.feature6': '💝 Special moments',
       'premium.upsell.cta': 'Expand My Family Now',
       'premium.upsell.guarantee': '✅ 7-day guarantee • ❌ Cancel anytime',
+      'premium.upsell.maybe_later': 'Maybe later',
       
       'chat.placeholder': 'Type your message...',
       'chat.send': 'Send',
@@ -369,6 +371,7 @@ const resources = {
       'premium.upsell.feature6': '💝 Momentos especiales',
       'premium.upsell.cta': 'Expandir Mi Familia Ahora',
       'premium.upsell.guarantee': '✅ 7 días de garantía • ❌ Cancela cuando quieras',
+      'premium.upsell.maybe_later': 'Quizás más tarde',
 
       'chat.placeholder': 'Escribe tu mensaje...',
       'chat.send': 'Enviar',
@@ -509,6 +512,7 @@ const resources = {
       'premium.upsell.feature6': '💝 Moments spéciaux',
       'premium.upsell.cta': 'Agrandir Ma Famille Maintenant',
       'premium.upsell.guarantee': '✅ 7 jours de garantie • ❌ Annulez quand vous voulez',
+      'premium.upsell.maybe_later': 'Peut-être plus tard',
 
       'chat.placeholder': 'Tapez votre message...',
       'chat.send': 'Envoyer',
@@ -649,6 +653,7 @@ const resources = {
       'premium.upsell.feature6': '💝 Besondere Momente',
       'premium.upsell.cta': 'Meine Familie Jetzt Erweitern',
       'premium.upsell.guarantee': '✅ 7 Tage Garantie • ❌ Jederzeit kündbar',
+      'premium.upsell.maybe_later': 'Vielleicht später',
 
       'chat.placeholder': 'Geben Sie Ihre Nachricht ein...',
       'chat.send': 'Senden',
@@ -789,6 +794,7 @@ const resources = {
       'premium.upsell.feature6': '💝 Momenti speciali',
       'premium.upsell.cta': 'Espandi La Mia Famiglia Ora',
       'premium.upsell.guarantee': '✅ 7 giorni di garanzia • ❌ Cancella quando vuoi',
+      'premium.upsell.maybe_later': 'Forse più tardi',
 
       'chat.placeholder': 'Scrivi il tuo messaggio...',
       'chat.send': 'Invia',
@@ -929,6 +935,7 @@ const resources = {
       'premium.upsell.feature6': '💝 特殊时刻',
       'premium.upsell.cta': '现在扩展我的家庭',
       'premium.upsell.guarantee': '✅ 7天保证 • ❌ 随时取消',
+      'premium.upsell.maybe_later': '也许以后',
 
       'chat.placeholder': '输入您的消息...',
       'chat.send': '发送',
@@ -1069,6 +1076,7 @@ const resources = {
       'premium.upsell.feature6': '💝 特別な瞬間',
       'premium.upsell.cta': '今すぐ家族を拡張',
       'premium.upsell.guarantee': '✅ 7日間保証 • ❌ いつでもキャンセル',
+      'premium.upsell.maybe_later': '後で考える',
 
       'chat.placeholder': 'メッセージを入力...',
       'chat.send': '送信',
@@ -1209,6 +1217,7 @@ const resources = {
       'premium.upsell.feature6': '💝 Особые моменты',
       'premium.upsell.cta': 'Расширить Мою Семью Сейчас',
       'premium.upsell.guarantee': '✅ 7 дней гарантии • ❌ Отменить в любое время',
+      'premium.upsell.maybe_later': 'Возможно позже',
 
       'chat.placeholder': 'Введите ваше сообщение...',
       'chat.send': 'Отправить',
@@ -1349,6 +1358,7 @@ const resources = {
       'premium.upsell.feature6': '💝 특별한 순간',
       'premium.upsell.cta': '지금 내 가족 확장하기',
       'premium.upsell.guarantee': '✅ 7일 보장 • ❌ 언제든 취소',
+      'premium.upsell.maybe_later': '나중에 할게요',
 
       'chat.placeholder': '메시지를 입력하세요...',
       'chat.send': '보내기',
@@ -1489,6 +1499,7 @@ const resources = {
       'premium.upsell.feature6': '💝 विशेष पल',
       'premium.upsell.cta': 'अब अपना परिवार बढ़ाएं',
       'premium.upsell.guarantee': '✅ 7 दिन की गारंटी • ❌ कभी भी रद्द करें',
+      'premium.upsell.maybe_later': 'शायद बाद में',
 
       'chat.placeholder': 'अपना मैसेज टाइप करें...',
       'chat.send': 'भेजें',
@@ -1629,6 +1640,7 @@ const resources = {
       'premium.upsell.feature6': '💝 لحظات خاصة',
       'premium.upsell.cta': 'توسيع عائلتي الآن',
       'premium.upsell.guarantee': '✅ ضمان 7 أيام • ❌ إلغاء في أي وقت',
+      'premium.upsell.maybe_later': 'ربما لاحقاً',
 
       'chat.placeholder': 'اكتب رسالتك...',
       'chat.send': 'إرسال',
