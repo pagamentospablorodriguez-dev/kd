@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Crown, Star, Heart, Zap, Shield, MessageCircle, Baby, Sparkles } from 'lucide-react';
+import { Crown, Star, Heart, Zap, Shield, MessageCircle, Baby, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 
@@ -73,15 +73,6 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg mx-auto my-4 relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 max-h-[95vh] overflow-y-auto"
           >
-            {/* Botão X */}
-            <button
-              onClick={handleClose}
-              className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
-            
-            >
-              <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-            </button>
-
             {/* Animated Background */}
             <div className="absolute inset-0 overflow-hidden rounded-3xl">
               <motion.div
@@ -220,7 +211,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
                 onClick={handlePremiumClick}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white rounded-2xl font-black text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden"
+                className="w-full py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white rounded-2xl font-black text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden mb-6"
               >
                 <motion.div
                   animate={{ rotate: 360 }}
@@ -245,14 +236,14 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
                 />
               </motion.button>
 
-              {/* Botão "Continuar no Grátis" */}
+              {/* Maybe Later Button */}
               <motion.button
                 onClick={handleClose}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full py-3 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mb-4"
               >
-                ⏰ {t('limit.tomorrow')}
+                {t('premium.upsell.maybe_later')}
               </motion.button>
 
               {/* Guarantee */}
