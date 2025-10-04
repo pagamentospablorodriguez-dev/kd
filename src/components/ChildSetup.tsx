@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Heart, User, Baby } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 import { ChildSetupData } from '../types';
 
 interface ChildSetupProps {
-  onComplete?: (data: ChildSetupData, newChildId: string) => void;
+  onComplete?: (data: ChildSetupData) => void;
   onBack?: () => void;
   showBackButton?: boolean;
 }
@@ -17,11 +17,6 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
   const [step, setStep] = useState(0);
   const [data, setData] = useState<Partial<ChildSetupData>>({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [step]);
 
   const steps = [
     { id: 'parent_name', title: t('setup.your_name'), icon: User, field: 'parentName', type: 'text', placeholder: t('setup.name_placeholder') },
@@ -50,22 +45,11 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
       setStep(step + 1);
     } else {
       setLoading(true);
-      setError(null);
-
-      const timeoutId = setTimeout(() => {
-        setLoading(false);
-        setError('Tempo esgotado. Por favor, tente novamente.');
-      }, 15000);
-
       try {
         const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) {
-          clearTimeout(timeoutId);
-          throw new Error('Usuário não encontrado');
-        }
+        if (!userData.user) throw new Error('Usuário não encontrado');
 
-        console.log('Creating child for user:', userData.user.id);
-
+        // Criar/atualizar usuário
         const { data: userResult, error: userError } = await supabase
           .from('users')
           .upsert({
@@ -74,19 +58,13 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
             name: data.parentName,
             gender: data.parentGender,
             language: 'pt-BR'
-          }, {
-            onConflict: 'id'
           })
           .select()
           .single();
 
-        if (userError) {
-          clearTimeout(timeoutId);
-          throw userError;
-        }
+        if (userError) throw userError;
 
-        console.log('User upserted:', userResult);
-
+        // Criar filho
         const { data: childResult, error: childError } = await supabase
           .from('children')
           .insert({
@@ -98,21 +76,15 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
           .select()
           .single();
 
-        clearTimeout(timeoutId);
-
-        if (childError) {
-          throw childError;
-        }
-
-        console.log('Child created successfully:', childResult);
+        if (childError) throw childError;
 
         if (onComplete) {
-          onComplete(data as ChildSetupData, childResult.id);
+          onComplete(data as ChildSetupData);
         }
       } catch (err: any) {
-        clearTimeout(timeoutId);
-        console.error('Error creating child:', err);
-        setError(err.message || 'Erro ao criar o filho');
+        console.error(err);
+        alert('Erro ao criar o filho: ' + err.message);
+      } finally {
         setLoading(false);
       }
     }
@@ -140,13 +112,13 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50/30 to-gray-100/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg">
+        {/* Back button */}
         {(showBackButton || step > 0) && (
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={handleBack}
-            disabled={loading}
-            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
+            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>{t('setup.back')}</span>
@@ -158,22 +130,11 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
             <span className="text-sm text-gray-500">{step + 1} de {steps.length}</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <motion.div 
-              className={`h-2 rounded-full bg-gradient-to-r ${getGradientClass()}`} 
-              initial={{ width: 0 }} 
-              animate={{ width: `${((step + 1) / steps.length) * 100}%` }} 
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-            />
+            <motion.div className={`h-2 rounded-full bg-gradient-to-r ${getGradientClass()}`} initial={{ width: 0 }} animate={{ width: `${((step + 1) / steps.length) * 100}%` }} transition={{ duration: 0.5, ease: 'easeOut' }}/>
           </div>
         </div>
 
-        <motion.div 
-          key={step} 
-          initial={{ opacity: 0, x: 20 }} 
-          animate={{ opacity: 1, x: 0 }} 
-          exit={{ opacity: 0, x: -20 }} 
-          className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50"
-        >
+        <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
           <div className="text-center mb-8">
             <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
@@ -188,8 +149,7 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
                 placeholder={currentStep.placeholder}
                 value={getCurrentValue() as string || ''}
                 onChange={(e) => handleInputChange(e.target.value)}
-                disabled={loading}
-                className="w-full px-4 py-4 text-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors text-center disabled:opacity-50"
+                className="w-full px-4 py-4 text-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors text-center"
                 autoFocus
               />
             </div>
@@ -201,10 +161,9 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
                 <motion.button
                   key={option.value}
                   onClick={() => handleSelectOption(option.value)}
-                  disabled={loading}
-                  whileHover={{ scale: loading ? 1 : 1.02 }}
-                  whileTap={{ scale: loading ? 1 : 0.98 }}
-                  className={`p-4 border-2 rounded-xl text-lg font-semibold transition-all disabled:opacity-50 ${
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`p-4 border-2 rounded-xl text-lg font-semibold transition-all ${
                     getCurrentValue() === option.value
                       ? `bg-gradient-to-r ${getGradientClass()} text-white border-transparent shadow-lg`
                       : `border-gray-200 hover:border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700`
@@ -216,40 +175,27 @@ const ChildSetup: React.FC<ChildSetupProps> = ({ onComplete, onBack, showBackBut
             </div>
           )}
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
-              {error}
-            </div>
-          )}
-
           <motion.button
             onClick={handleNext}
             disabled={!isStepComplete() || loading}
-            whileHover={{ scale: isStepComplete() && !loading ? 1.02 : 1 }}
-            whileTap={{ scale: isStepComplete() && !loading ? 0.98 : 1 }}
+            whileHover={{ scale: isStepComplete() ? 1.02 : 1 }}
+            whileTap={{ scale: isStepComplete() ? 0.98 : 1 }}
             className={`w-full py-4 rounded-xl font-semibold text-lg transition-all flex items-center justify-center gap-2 ${
-              isStepComplete() && !loading
+              isStepComplete()
                 ? `bg-gradient-to-r ${getGradientClass()} text-white shadow-lg hover:shadow-xl`
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
             {step === steps.length - 1
               ? loading
-                ? (
-                  <div className="flex items-center gap-2">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                    />
-                    <span>{t('setup.creating')}</span>
-                  </div>
-                )
+                ? t('setup.creating')
                 : t('setup.meet_child')
               : t('setup.continue')}
-            {!loading && <ArrowRight className="w-5 h-5" />}
+            <ArrowRight className="w-5 h-5" />
           </motion.button>
         </motion.div>
+
+       
       </motion.div>
     </div>
   );
