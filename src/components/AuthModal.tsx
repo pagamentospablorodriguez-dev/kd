@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Google, Apple } from 'lucide-react'; // Certifique-se de que 'lucide-react' está instalado
+import { Google, Apple } from 'lucide-react'; // Importação corrigida
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 
