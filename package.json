@@ -30,6 +30,7 @@
     "react-dom": "^18.3.1",
     "react-i18next": "^15.7.3",
     "react-router-dom": "^6.23.1",
+    "react-hot-toast": "^2.4.1",
     "openai": "^5.22.0",
     "uuid": "^13.0.0"
   },
@@ -53,3 +54,5 @@
     "vite": "^5.4.2"
   }
 }
+
+
