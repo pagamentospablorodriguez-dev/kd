@@ -1,253 +1,47 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Clock, Crown, X, Zap, Star, Infinity, MessageCircle } from 'lucide-react';
+import { X, MessageSquare, Crown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../hooks/useAuth';
 
 interface LimitModalProps {
-  isOpen: boolean;
   onClose: () => void;
-  childName: string;
-  childGender: 'male' | 'female';
+  onUpgradeClick: () => void;
 }
 
-const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, childGender }) => {
-  const { t, i18n } = useTranslation();
-  const { getUserId } = useAuth();
-
-  const colorScheme = childGender === 'female' ? 'pink' : 'blue';
-  const gradientClass = colorScheme === 'pink' ? 'from-pink-500 to-rose-500' : 'from-blue-500 to-cyan-500';
-  const heartColor = colorScheme === 'pink' ? 'text-pink-500' : 'text-blue-500';
-  const glowClass = colorScheme === 'pink' ? 'shadow-pink-500/20' : 'shadow-blue-500/20';
-
-  const handlePremiumClick = () => {
-    const userId = getUserId();
-    const isPtBR = i18n.language === 'pt-BR';
-    
-    // Determinar URL baseado no idioma
-    let premiumUrl = isPtBR
-      ? 'https://pay.kiwify.com.br/Xpj0Ymu'
-      : 'https://pay.kiwify.com.br/rdNpnqU';
-
-    // ✅ GARANTIDO: Adicionar userId como parâmetro s1 para o webhook conseguir identificar
-    if (userId) {
-      const separator = premiumUrl.includes('?') ? '&' : '?';
-      premiumUrl += `${separator}s1=${userId}`;
-      console.log('🔗 LimitModal: Premium URL with tracking:', premiumUrl);
-    }
-
-    window.open(premiumUrl, '_blank');
-  };
-
-  // ✅ CORREÇÃO: Simplificar fechamento igual ao PremiumUpsellModal
-  const handleClose = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    onClose();
-  };
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  };
-
-  const getPriceDisplay = () => {
-    const isPtBR = i18n.language === 'pt-BR';
-    if (isPtBR) {
-      return 'R$ 29/mês';
-    } else {
-      return 'US$29/month';
-    }
-  };
-
-  const getPriceSubtext = () => {
-    const isPtBR = i18n.language === 'pt-BR';
-    if (!isPtBR) {
-      return '(R$ 159.50)';
-    }
-    return '';
-  };
-
-  const showPriceExplanation = () => {
-    const isPtBR = i18n.language === 'pt-BR';
-    return !isPtBR; // Só mostrar explicação para não brasileiros
-  };
+const LimitModal = ({ onClose, onUpgradeClick }: LimitModalProps) => {
+  const { t } = useTranslation();
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
-          onClick={handleBackdropClick}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md relative my-8">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-auto my-4 relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 max-h-[95vh] overflow-y-auto"
-          >
-            {/* ✅ CORREÇÃO: Botão X igual ao PremiumUpsellModal */}
+          <X size={24} />
+        </button>
+        <div className="text-center">
+          <MessageSquare className="mx-auto h-12 w-12 text-primary-500 dark:text-primary-400" />
+          <h3 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{t('limitModal.title')}</h3>
+          <div className="mt-2">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {t('limitModal.description')}
+            </p>
+            <p className="mt-2 text-lg font-semibold text-primary-600 dark:text-primary-400">
+              {t('limitModal.currentLimit')}
+            </p>
+          </div>
+          <div className="mt-5 sm:mt-6">
             <button
-              onClick={handleClose}
-              className="absolute top-3 right-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
               type="button"
-              aria-label="Fechar modal"
+              className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:text-sm"
+              onClick={onUpgradeClick}
             >
-              <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+              <Crown className="mr-2" size={20} />
+              {t('limitModal.upgradeButton')}
             </button>
-
-            {/* Header com Logo e Título */}
-            <div className="text-center px-6 pt-6 pb-4">
-              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
-              </div>
-              
-              <motion.h2 
-                className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2"
-                animate={{ scale: [1, 1.02, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                💔 {t('limit.title_11')}
-              </motion.h2>
-              
-              <p className={`font-semibold ${heartColor} mb-2 text-sm sm:text-base`}>
-                {childName} {t('limit.subtitle')}
-              </p>
-              
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                ⏰ {t('limit.reset_text')}
-              </div>
-            </div>
-
-            {/* Seção Emocional Melhorada */}
-            <div className="px-6 pb-4">
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 mb-4">
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base text-center">
-                  💕 {t('limit.description')}
-                </p>
-                
-                {/* Contador Visual */}
-                <div className="mt-4 bg-white dark:bg-gray-600 rounded-lg p-3 border-l-4 border-orange-400">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-orange-500" />
-                      <span className="text-xs sm:text-sm font-semibold text-orange-600 dark:text-orange-400">
-                        {t('limit.next_24_hours')}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-gray-700 dark:text-gray-200">11/11</div>
-                      <div className="text-xs text-gray-500">{t('children.messages')}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Seção Premium com Preço Destacado */}
-            <div className="px-6 pb-4">
-              <div className={`bg-gradient-to-r ${gradientClass} rounded-xl p-4 text-white mb-4 relative overflow-hidden`}>
-                <div className="relative z-10">
-                  <div className="flex items-center justify-center mb-2">
-                    <Crown className="w-5 h-5 mr-2" />
-                    <span className="font-bold text-sm">PREMIUM</span>
-                  </div>
-                  
-                  <div className="text-center mb-3">
-                    <div className="text-2xl sm:text-3xl font-black">
-                      {getPriceDisplay()}
-                    </div>
-                    {getPriceSubtext() && (
-                      <div className="text-xs opacity-90">{getPriceSubtext()}</div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex items-center gap-1">
-                      <Infinity className="w-3 h-3" />
-                      <span>{t('limit.feature_unlimited')}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MessageCircle className="w-3 h-3" />
-                      <span>{t('limit.feature_proactive')}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3" />
-                      <span>{t('limit.feature_memories')}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Zap className="w-3 h-3" />
-                      <span>{t('limit.feature_evolution')}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Shimmer effect */}
-                <motion.div
-                  animate={{ x: [-100, 300] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                />
-              </div>
-
-              {showPriceExplanation() && (
-                <p className="text-xs text-gray-500 text-center mb-4">{t('limit.price_explanation')}</p>
-              )}
-            </div>
-
-            {/* Botões de Ação Otimizados */}
-            <div className="px-6 pb-6 space-y-3">
-              <motion.button
-                onClick={handlePremiumClick}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`w-full py-4 bg-gradient-to-r ${gradientClass} text-white rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 relative overflow-hidden ${glowClass}`}
-              >
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                >
-                  <Crown className="w-5 h-5" />
-                </motion.div>
-                <span>🚀 {t('limit.premium')}</span>
-                
-                {/* Pulse effect */}
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute inset-0 bg-white/10 rounded-xl"
-                />
-              </motion.button>
-
-              <motion.button
-                onClick={handleClose}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                ⏰ {t('limit.tomorrow')}
-              </motion.button>
-            </div>
-
-            {/* Garantia/Segurança */}
-            <div className="px-6 pb-4 border-t border-gray-100 dark:border-gray-700 pt-4">
-              <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-                <span>🔒 {t('limit.security.secure_payment')}</span>
-                <span>❤️ {t('limit.security.no_commitment')}</span>
-                <span>⚡ {t('limit.security.instant_activation')}</span>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
