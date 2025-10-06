@@ -17,7 +17,7 @@ const resources = {
       'auth.signInButton': 'Sign In',
       'auth.signUpButton': 'Sign Up',
       'auth.loading': 'Loading...',
-      'auth.or	': 'or',
+      'auth.or': 'or', // Corrigido: removido o \t
       'auth.signInWithGoogle': 'Sign in with Google',
       'auth.signInWithApple': 'Sign in with Apple',
       'auth.noAccount': "Don't have an account?",
@@ -32,7 +32,7 @@ const resources = {
       'childSelector.title': 'Select a Child',
       'childSelector.premiumUpsellText': 'You are on the free plan. Create unlimited children and get more features with Premium.',
       'childSelector.premiumUpsellLink': 'Upgrade Now',
-      'childSelector.noChildrenYet': 'You haven\\'t created any children yet.',
+      'childSelector.noChildrenYet': 'You haven\'t created any children yet.',
       'childSelector.createFirstChild': 'Create Your First Child',
       'childSelector.age': 'Age: {{age}}',
       'childSelector.genderMale': 'Male',
@@ -158,7 +158,7 @@ const resources = {
       'auth.signInButton': 'Entrar',
       'auth.signUpButton': 'Cadastrar',
       'auth.loading': 'Carregando...',
-      'auth.or	': 'ou',
+      'auth.or': 'ou', // Corrigido: removido o \t
       'auth.signInWithGoogle': 'Entrar com Google',
       'auth.signInWithApple': 'Entrar com Apple',
       'auth.noAccount': 'Não tem uma conta?',
