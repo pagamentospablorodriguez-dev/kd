@@ -1,14 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { LucideIcon, icons } from 'lucide-react'; // Importação mais genérica
+import { Google, Apple } from 'lucide-react'; // Importação direta dos ícones
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-
-// Função auxiliar para obter o ícone pelo nome
-const getIcon = (iconName: string): LucideIcon | null => {
-  // @ts-ignore
-  return icons[iconName] || null;
-};
 
 const AuthModal = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -17,9 +11,6 @@ const AuthModal = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
-
-  const GoogleIcon = getIcon('Google'); // Tenta obter o ícone 'Google'
-  const AppleIcon = getIcon('Apple');   // Tenta obter o ícone 'Apple'
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,7 +165,7 @@ const AuthModal = () => {
             className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             disabled={loading}
           >
-            {GoogleIcon && <GoogleIcon size={20} className="mr-2" />}
+            <Google size={20} className="mr-2" />
             {t('auth.signInWithGoogle')}
           </button>
           <button
@@ -182,7 +173,7 @@ const AuthModal = () => {
             className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             disabled={loading}
           >
-            {AppleIcon && <AppleIcon size={20} className="mr-2" />}
+            <Apple size={20} className="mr-2" />
             {t('auth.signInWithApple')}
           </button>
         </div>
