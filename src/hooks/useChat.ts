@@ -35,16 +35,17 @@ interface ChildWithUser extends Child {
 const useChat = (childId: string | undefined, session: Session | null, setShowLimitModal: (show: boolean) => void) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Começa como true para o carregamento inicial
   const [child, setChild] = useState<Child | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
-  const [dailyLimit, setDailyLimit] = useState(20); // Default limit for non-premium users
+  const dailyLimit = 20;
   const { t, i18n } = useTranslation();
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchChildData = useCallback(async () => {
-    if (!childId) return;
+    if (!childId || !session) return;
+    
     const { data, error } = await supabase
       .from('children')
       .select('*, users(is_premium, daily_message_count, last_message_date)')
@@ -56,18 +57,20 @@ const useChat = (childId: string | undefined, session: Session | null, setShowLi
       toast.error(t('chat.fetchChildError'));
     } else if (data) {
       const childData = data as ChildWithUser;
-      setChild(childData as Child);
-      setIsPremium(childData.users.is_premium);
-      setMessageCount(childData.users.daily_message_count);
-
-      // Reset daily message count if it's a new day
-      const lastMessageDate = new Date(childData.users.last_message_date);
-      const today = new Date();
-      if (lastMessageDate.toDateString() !== today.toDateString()) {
-        setMessageCount(0);
+      setChild(childData);
+      
+      if (childData.users) {
+        setIsPremium(childData.users.is_premium);
+        const lastMessageDate = new Date(childData.users.last_message_date);
+        const today = new Date();
+        if (lastMessageDate.toDateString() !== today.toDateString()) {
+          setMessageCount(0);
+        } else {
+          setMessageCount(childData.users.daily_message_count);
+        }
       }
     }
-  }, [childId, t]);
+  }, [childId, session, t]);
 
   const fetchMessages = useCallback(async () => {
     if (!childId) return;
@@ -93,19 +96,34 @@ const useChat = (childId: string | undefined, session: Session | null, setShowLi
       fetchMessages();
     }
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && childId && session) {
+        fetchChildData();
+        fetchMessages();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     const messageSubscription = supabase
       .channel(`messages:${childId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `child_id=eq.${childId}` },
         (payload) => {
-          setMessages((prevMessages) => [...prevMessages, payload.new as Message]);
+          setMessages((prevMessages) => {
+            if (prevMessages.some(msg => msg.id === payload.new.id)) {
+              return prevMessages;
+            }
+            return [...prevMessages, payload.new as Message];
+          });
         }
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(messageSubscription);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -116,77 +134,77 @@ const useChat = (childId: string | undefined, session: Session | null, setShowLi
     e.preventDefault();
     if (!input.trim() || !childId || !session || loading) return;
 
-    // Check daily limit for non-premium users
     if (!isPremium && messageCount >= dailyLimit) {
       setShowLimitModal(true);
       return;
     }
 
-    setLoading(true);
+    const userMessageContent = input;
+    const tempId = `temp-${Date.now()}`;
     const userMessage: Message = {
-      id: Math.random().toString(), // Temporary ID
-      content: input,
+      id: tempId,
+      content: userMessageContent,
       role: 'user',
       created_at: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, userMessage]);
+
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInput('');
+    setLoading(true);
 
     try {
-      // Save user message to DB
-      const { error: userMessageError } = await supabase.from('messages').insert({
+      const { data: insertedMessage, error: userMessageError } = await supabase.from('messages').insert({
         user_id: session.user.id,
         child_id: childId,
-        content: userMessage.content,
+        content: userMessageContent,
         role: 'user',
         language: i18n.language,
-      });
+      }).select().single();
+
       if (userMessageError) throw userMessageError;
 
-      // Increment message count
+      setMessages(prev => prev.map(m => m.id === tempId ? insertedMessage as Message : m));
+      
       const { error: countError } = await supabase.rpc('increment_message_count', { user_id_param: session.user.id });
-      if (countError) console.error('Error incrementing message count:', countError);
-      setMessageCount((prev) => prev + 1);
+      if (countError) console.error('Error incrementing count:', countError);
+      else setMessageCount(mc => mc + 1);
 
-      // Call AI function
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
       abortControllerRef.current = new AbortController();
-      const { data, error: aiError } = await supabase.functions.invoke('chat-ai', {
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          childId,
-          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
-          user_id: session.user.id,
-          user_language: i18n.language,
+          messages: [...messages, userMessage].slice(-10),
+          child,
+          userLanguage: i18n.language,
         }),
         signal: abortControllerRef.current.signal,
       });
 
-      if (aiError) throw aiError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || t('chat.apiError'));
+      }
 
-      const aiMessage: Message = {
-        id: Math.random().toString(), // Temporary ID
-        content: data.response,
-        role: 'assistant',
-        created_at: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
+      const aiResponseContent = await response.json();
 
-      // Save AI message to DB
-      const { error: aiMessageError } = await supabase.from('messages').insert({
+      await supabase.from('messages').insert({
         user_id: session.user.id,
         child_id: childId,
-        content: aiMessage.content,
+        content: aiResponseContent.response,
         role: 'assistant',
         language: i18n.language,
-        tokens_used: data.tokens_used || 0,
       });
-      if (aiMessageError) throw aiMessageError;
 
     } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.log('Message send aborted');
-      } else {
+      if (error.name !== 'AbortError') {
         console.error('Error sending message:', error);
-        toast.error(t('chat.apiError'));
+        toast.error(error.message);
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
       }
     } finally {
       setLoading(false);
@@ -194,17 +212,7 @@ const useChat = (childId: string | undefined, session: Session | null, setShowLi
     }
   };
 
-  return {
-    messages,
-    input,
-    setInput,
-    loading,
-    handleSendMessage,
-    child,
-    isPremium,
-    messageCount,
-    dailyLimit,
-  };
+  return { messages, input, setInput, loading, handleSendMessage, child };
 };
 
 export default useChat;
