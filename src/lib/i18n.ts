@@ -32,7 +32,7 @@ const resources = {
       'childSelector.title': 'Select a Child',
       'childSelector.premiumUpsellText': 'You are on the free plan. Create unlimited children and get more features with Premium.',
       'childSelector.premiumUpsellLink': 'Upgrade Now',
-      'childSelector.noChildrenYet': 'You haven't created any children yet.',
+      'childSelector.noChildrenYet': 'You haven\'t created any children yet.',
       'childSelector.createFirstChild': 'Create Your First Child',
       'childSelector.age': 'Age: {{age}}',
       'childSelector.genderMale': 'Male',
@@ -276,6 +276,13 @@ const resources = {
     },
   },
   // Adicione outras línguas aqui (es, fr, de, etc.)
+  // Exemplo para espanhol:
+  es: {
+    translation: {
+      'auth.or': 'o',
+      // ... e assim por diante para todas as chaves
+    }
+  }
 };
 
 i18n
