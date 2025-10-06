@@ -17,7 +17,7 @@ const resources = {
       'auth.signInButton': 'Sign In',
       'auth.signUpButton': 'Sign Up',
       'auth.loading': 'Loading...',
-      'auth.or': 'or',
+      'auth.or	': 'or',
       'auth.signInWithGoogle': 'Sign in with Google',
       'auth.signInWithApple': 'Sign in with Apple',
       'auth.noAccount': "Don't have an account?",
@@ -32,7 +32,7 @@ const resources = {
       'childSelector.title': 'Select a Child',
       'childSelector.premiumUpsellText': 'You are on the free plan. Create unlimited children and get more features with Premium.',
       'childSelector.premiumUpsellLink': 'Upgrade Now',
-      'childSelector.noChildrenYet': 'You haven\'t created any children yet.',
+      'childSelector.noChildrenYet': 'You haven\\'t created any children yet.',
       'childSelector.createFirstChild': 'Create Your First Child',
       'childSelector.age': 'Age: {{age}}',
       'childSelector.genderMale': 'Male',
@@ -89,6 +89,11 @@ const resources = {
       'chat.fetchMessagesError': 'Error fetching messages.',
       'chat.dailyLimitReached': 'You have reached your daily message limit.',
       'chat.apiError': 'An error occurred while getting a response.',
+      'chat.childNotFound': 'Child not found.',
+      'chat.backToChildren': 'Back to Children Selection',
+      'chat.goPremium': 'Go Premium',
+      'chat.startConversation': 'Start a conversation with {{childName}}',
+      'chat.startConversationDescription': 'Ask anything, tell a story, or teach something new. The conversation shapes who they become.',
 
       // Limit Modal
       'limitModal.title': 'Daily Limit Reached',
@@ -153,7 +158,7 @@ const resources = {
       'auth.signInButton': 'Entrar',
       'auth.signUpButton': 'Cadastrar',
       'auth.loading': 'Carregando...',
-      'auth.or': 'ou',
+      'auth.or	': 'ou',
       'auth.signInWithGoogle': 'Entrar com Google',
       'auth.signInWithApple': 'Entrar com Apple',
       'auth.noAccount': 'Não tem uma conta?',
@@ -225,6 +230,11 @@ const resources = {
       'chat.fetchMessagesError': 'Erro ao carregar mensagens.',
       'chat.dailyLimitReached': 'Você atingiu seu limite diário de mensagens.',
       'chat.apiError': 'Ocorreu um erro ao obter uma resposta.',
+      'chat.childNotFound': 'Criança não encontrada.',
+      'chat.backToChildren': 'Voltar para a seleção de crianças',
+      'chat.goPremium': 'Seja Premium',
+      'chat.startConversation': 'Inicie uma conversa com {{childName}}',
+      'chat.startConversationDescription': 'Pergunte qualquer coisa, conte uma história ou ensine algo novo. A conversa molda quem eles se tornam.',
 
       // Limit Modal
       'limitModal.title': 'Limite Diário Atingido',
@@ -276,13 +286,6 @@ const resources = {
     },
   },
   // Adicione outras línguas aqui (es, fr, de, etc.)
-  // Exemplo para espanhol:
-  es: {
-    translation: {
-      'auth.or': 'o',
-      // ... e assim por diante para todas as chaves
-    }
-  }
 };
 
 i18n
