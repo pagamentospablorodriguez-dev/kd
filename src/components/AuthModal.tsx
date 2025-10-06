@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Google, Apple } from 'lucide-react'; // Importação corrigida
+import { IconBrandGoogle, IconBrandApple } from 'lucide-react'; // Nomes de ícones corrigidos
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 
@@ -165,7 +165,7 @@ const AuthModal = () => {
             className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             disabled={loading}
           >
-            <Google size={20} className="mr-2" />
+            <IconBrandGoogle size={20} className="mr-2" />
             {t('auth.signInWithGoogle')}
           </button>
           <button
@@ -173,7 +173,7 @@ const AuthModal = () => {
             className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             disabled={loading}
           >
-            <Apple size={20} className="mr-2" />
+            <IconBrandApple size={20} className="mr-2" />
             {t('auth.signInWithApple')}
           </button>
         </div>
