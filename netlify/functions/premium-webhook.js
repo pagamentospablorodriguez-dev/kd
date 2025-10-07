@@ -9,7 +9,7 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-exports.handler = async function(event, context) {
+export const handler = async (event, context) => {
   const { headers, body } = event;
 
   try {
