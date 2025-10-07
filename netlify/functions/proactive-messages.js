@@ -27,7 +27,8 @@ ESTILO:
 Crie uma mensagem proativa baseada no contexto fornecido.
 `;
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
+
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
