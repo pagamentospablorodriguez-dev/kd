@@ -294,7 +294,7 @@ const resources = {
       'common.close': 'Close',
       'common.yes': 'Yes',
       'common.no': 'No',
-      'common.or': 'or',
+      'common.or': 'Or',
     }
   },
   'es': {
