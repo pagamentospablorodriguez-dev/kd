@@ -152,6 +152,7 @@ const resources = {
       'common.close': 'Fechar',
       'common.yes': 'Sim',
       'common.no': 'Não',
+      'common.or': 'Ou',
     }
   },
   'en': {
@@ -293,6 +294,7 @@ const resources = {
       'common.close': 'Close',
       'common.yes': 'Yes',
       'common.no': 'No',
+      'common.or': 'or',
     }
   },
   'es': {
@@ -434,6 +436,7 @@ const resources = {
       'common.close': 'Cerrar',
       'common.yes': 'Sí',
       'common.no': 'No',
+  'common.or': 'O',
     }
   },
   'fr': {
@@ -575,6 +578,7 @@ const resources = {
       'common.close': 'Fermer',
       'common.yes': 'Oui',
       'common.no': 'Non',
+      'common.or': 'Ou',
     }
   },
   'de': {
@@ -716,6 +720,7 @@ const resources = {
       'common.close': 'Schließen',
       'common.yes': 'Ja',
       'common.no': 'Nein',
+      'common.or': 'Oder',
     }
   },
   'it': {
@@ -857,6 +862,7 @@ const resources = {
       'common.close': 'Chiudi',
       'common.yes': 'Sì',
       'common.no': 'No',
+      'common.or': 'O',
     }
   },
   'zh': {
@@ -998,6 +1004,7 @@ const resources = {
       'common.close': '关闭',
       'common.yes': '是',
       'common.no': '否',
+      'common.or': '或',
     }
   },
   'ja': {
@@ -1139,6 +1146,7 @@ const resources = {
       'common.close': '閉じる',
       'common.yes': 'はい',
       'common.no': 'いいえ',
+      'common.or': 'または',
     }
   },
   'ru': {
@@ -1280,6 +1288,7 @@ const resources = {
       'common.close': 'Закрыть',
       'common.yes': 'Да',
       'common.no': 'Нет',
+      'common.or': 'или',
     }
   },
   'ko': {
@@ -1421,6 +1430,7 @@ const resources = {
       'common.close': '닫기',
       'common.yes': '네',
       'common.no': '아니요',
+      'common.or': '또는',
     }
   },
   'hi': {
@@ -1562,6 +1572,7 @@ const resources = {
       'common.close': 'बंद करें',
       'common.yes': 'हां',
       'common.no': 'नहीं',
+      'common.or': 'या',
     }
   },
   'ar': {
@@ -1703,6 +1714,8 @@ const resources = {
       'common.close': 'إغلاق',
       'common.yes': 'نعم',
       'common.no': 'لا',
+      'common.or': 'أو',
+
     }
   }
 };
