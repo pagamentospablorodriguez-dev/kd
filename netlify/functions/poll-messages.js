@@ -1,6 +1,7 @@
 // POLLING SIMPLIFICADO - NÃO PRECISA MAIS SER COMPLEXO
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
+
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
