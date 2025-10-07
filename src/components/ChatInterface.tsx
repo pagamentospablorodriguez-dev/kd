@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, User, AlertCircle, RotateCcw, Sparkles, Heart, Brain, MessageCircle, LogIn } from 'lucide-react';
