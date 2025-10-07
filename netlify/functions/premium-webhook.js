@@ -1,5 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
 
 // Inicializar Supabase Admin Client
 const supabaseAdmin = createClient(
