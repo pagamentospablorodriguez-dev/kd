@@ -1,8 +1,18 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Google, Apple } from 'lucide-react'; // Importação direta dos ícones
+import { Apple } from 'lucide-react'; // Apenas o ícone da Apple é importado
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+
+// Ícone do Google como um componente SVG, exatamente como no seu código antigo.
+const GoogleIcon = () => (
+  <svg className="w-5 h-5 mr-2" viewBox="0 0 48 48">
+    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039L38.804 12.8C34.836 9.219 29.821 7 24 7C12.954 7 4 15.954 4 27s8.954 20 20 20s20-8.954 20-20c0-1.341-.138-2.65-.389-3.917z"></path>
+    <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 13 24 13c3.059 0 5.842 1.154 7.961 3.039L38.804 12.8C34.836 9.219 29.821 7 24 7C16.318 7 9.656 10.337 6.306 14.691z"></path>
+    <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.222 0-9.618-3.319-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path>
+    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.447-2.274 4.488-4.244 5.964l6.19 5.238C42.012 36.41 44 31.8 44 27c0-1.341-.138-2.65-.389-3.917z"></path>
+  </svg>
+);
 
 const AuthModal = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -23,20 +33,14 @@ const AuthModal = () => {
     }
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (error) throw error;
-        toast.success(t('auth.signUpSuccess'));
+      const { error } = isSignUp
+        ? await supabase.auth.signUp({ email, password })
+        : await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        toast.error(error.message);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        toast.success(t('auth.signInSuccess'));
+        toast.success(isSignUp ? t('auth.signUpSuccess') : t('auth.signInSuccess'));
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -51,10 +55,12 @@ const AuthModal = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: window.location.origin + '/chat',
         },
       });
-      if (error) throw error;
+      if (error) {
+        toast.error(error.message);
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -63,84 +69,71 @@ const AuthModal = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 space-y-6 border border-gray-200 dark:border-gray-700">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 dark:bg-gray-900">
+      <div className="max-w-md w-full space-y-8 p-10 bg-white dark:bg-gray-800 rounded-xl shadow-lg z-10">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             {isSignUp ? t('auth.signUpTitle') : t('auth.signInTitle')}
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {t('auth.welcomeMessage')}
-          </p>
         </div>
-
-        <form onSubmit={handleEmailAuth} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t('auth.emailLabel')}
-            </label>
-            <div className="mt-1">
+        <form className="mt-8 space-y-6" onSubmit={handleEmailAuth}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="email-address" className="sr-only">
+                {t('auth.emailLabel')}
+              </label>
               <input
-                id="email"
+                id="email-address"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-                placeholder={t('auth.emailPlaceholder')}
-                disabled={loading}
               />
             </div>
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t('auth.passwordLabel')}
-            </label>
-            <div className="mt-1">
+            <div>
+              <label htmlFor="password" className="sr-only">
+                {t('auth.passwordLabel')}
+              </label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                placeholder={t('auth.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-                placeholder={t('auth.passwordPlaceholder')}
-                disabled={loading}
               />
             </div>
-          </div>
-
-          {isSignUp && (
-            <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('auth.confirmPasswordLabel')}
-              </label>
-              <div className="mt-1">
+            {isSignUp && (
+              <div>
+                <label htmlFor="confirm-password" className="sr-only">
+                  {t('auth.confirmPasswordLabel')}
+                </label>
                 <input
                   id="confirm-password"
                   name="confirm-password"
                   type="password"
                   autoComplete="new-password"
                   required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  placeholder={t('auth.confirmPasswordPlaceholder')}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-                  placeholder={t('auth.confirmPasswordPlaceholder')}
-                  disabled={loading}
                 />
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <div>
             <button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-primary-500 dark:hover:bg-primary-600"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-primary-500 dark:hover:bg-primary-600"
               disabled={loading}
             >
               {loading ? t('auth.loading') : (isSignUp ? t('auth.signUpButton') : t('auth.signInButton'))}
@@ -165,7 +158,7 @@ const AuthModal = () => {
             className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             disabled={loading}
           >
-            <Google size={20} className="mr-2" />
+            <GoogleIcon />
             {t('auth.signInWithGoogle')}
           </button>
           <button
