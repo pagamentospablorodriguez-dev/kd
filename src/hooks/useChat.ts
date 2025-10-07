@@ -4,20 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 
-const MAX_RETRIES = 3;
-const AI_TIMEOUT = 45000; // 45s
-const DAILY_LIMIT = 11;
-
 export const useChat = (user: User | null, child: Child | null, onMessageLimit: () => void) => {
   const { i18n } = useTranslation();
-
   const [messages, setMessages] = useState<Message[]>([]);
-  const messagesRef = useRef<Message[]>([]);
-  
   const [isLoading, setIsLoading] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
-  const messageCountRef = useRef<number>(0);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -25,14 +16,27 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(scrollToBottom, 100);
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
     return () => clearTimeout(timer);
   }, [messages, scrollToBottom]);
 
+  // Load messages and count when user and child are available
+  useEffect(() => {
+    if (user && child) {
+      loadMessages();
+      loadTodayMessageCount();
+    }
+  }, [user, child]);
+
   const loadTodayMessageCount = async () => {
     if (!user) return;
+
     try {
       const today = new Date().toISOString().split('T')[0];
+      
+      // Count user messages from today
       const { data, error } = await supabase
         .from('messages')
         .select('id')
@@ -45,31 +49,18 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
       const count = data?.length || 0;
       setMessageCount(count);
-      messageCountRef.current = count;
+      console.log('Mensagens enviadas hoje:', count);
     } catch (error) {
       console.error('Erro ao contar mensagens:', error);
     }
   };
 
-  const sendInitialGreeting = async () => {
-    if (!user || !child) return;
-    const greeting: Message = {
-      id: uuidv4(),
-      content: `Hello! I am ${child.name}, your virtual child! Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}!`,
-      role: 'assistant',
-      timestamp: new Date(),
-      status: 'sent',
-      message_type: 'normal'
-    };
-    messagesRef.current = [greeting];
-    setMessages([greeting]);
-    try { await saveMessage(greeting); } 
-    catch (e) { console.error('Erro salvando greeting inicial', e); }
-  };
-
   const loadMessages = async () => {
     if (!user || !child) return;
+
     try {
+      console.log('Loading messages for user:', user.id, 'child:', child.id);
+      
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -79,87 +70,175 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
       if (error) throw error;
 
-      let formatted: Message[] = data.map(msg => ({
+      console.log('Messages loaded:', data?.length || 0);
+
+      const formattedMessages = data.map(msg => ({
         id: msg.id,
         content: msg.content,
         role: msg.role as 'user' | 'assistant',
         timestamp: new Date(msg.created_at),
-        status: 'sent',
+        status: 'sent' as const,
         message_type: msg.message_type
       }));
 
-      // fallback: greeting inicial se estiver vazio
-      if (formatted.length === 0) {
-        await sendInitialGreeting();
-        return;
-      }
+      setMessages(formattedMessages);
 
-      messagesRef.current = formatted;
-      setMessages(formatted);
+      // If no messages, send initial greeting
+      if (formattedMessages.length === 0) {
+        console.log('No messages found, sending initial greeting');
+        await sendInitialGreeting();
+      }
     } catch (error) {
-      console.error('Erro ao carregar mensagens:', error);
-      if (messagesRef.current.length === 0) await sendInitialGreeting();
+      console.error('Error loading messages:', error);
+      // Se houver erro ao carregar, ainda assim envia greeting inicial
+      if (messages.length === 0) {
+        console.log('Error loading messages, sending fallback greeting');
+        await sendInitialGreeting();
+      }
     }
   };
 
-  useEffect(() => {
-    if (!child) return;
-
-    const cached = localStorage.getItem(`chat-${child.id}`);
-    if (cached) {
-      const parsed: Message[] = JSON.parse(cached);
-      messagesRef.current = parsed;
-      setMessages(parsed);
-    }
-
-    // Carregar do Supabase sempre que abrir chat
-    loadMessages();
-    loadTodayMessageCount();
-  }, [user, child]);
-
-  useEffect(() => {
-    if (child) {
-      localStorage.setItem(`chat-${child.id}`, JSON.stringify(messages));
-    }
-  }, [messages, child]);
-
-  const saveMessage = async (msg: Message) => {
+  const sendInitialGreeting = async () => {
     if (!user || !child) return;
-    try {
-      await supabase.from('messages').insert({
-        user_id: user.id,
-        child_id: child.id,
-        content: msg.content,
-        role: msg.role,
-        message_type: msg.message_type || 'normal',
-        language: i18n.language
-      });
 
-      await supabase.from('user_analytics').insert({
-        user_id: user.id,
-        event_type: 'message_sent',
-        event_data: {
-          child_id: child.id,
-          message_role: msg.role,
-          message_length: msg.content.length,
-          language: i18n.language
-        }
-      });
-    } catch (e) {
-      console.error('Erro salvando mensagem:', e);
+    console.log('Sending initial greeting for:', child.name);
+
+    const greetingMessage = generateInitialGreeting(user, child, i18n.language);
+    
+    const assistantMessage: Message = {
+      id: uuidv4(),
+      content: greetingMessage,
+      role: 'assistant',
+      timestamp: new Date(),
+      status: 'sent',
+      message_type: 'normal'
+    };
+
+    setMessages([assistantMessage]);
+
+    // Save to database
+    try {
+      await saveMessage(assistantMessage);
+      console.log('Initial greeting saved successfully');
+    } catch (error) {
+      console.error('Error saving initial greeting:', error);
     }
+  };
+
+  const generateInitialGreeting = (user: User, child: Child, language: string): string => {
+    const timeOfDay = getTimeOfDay(language);
+    const parentTitle = getParentTitle(user.gender, language);
+    
+    const greetings = getGreetings(child, parentTitle, timeOfDay, language);
+    return greetings[Math.floor(Math.random() * greetings.length)];
+  };
+
+  const getTimeOfDay = (language: string): string => {
+    const hour = new Date().getHours();
+    
+    const timeMessages: Record<string, { morning: string; afternoon: string; evening: string }> = {
+      'pt-BR': { morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite' },
+      'en': { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening' },
+      'es': { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+      'fr': { morning: 'Bonjour', afternoon: 'Bon après-midi', evening: 'Bonsoir' },
+      'de': { morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend' },
+      'it': { morning: 'Buongiorno', afternoon: 'Buon pomeriggio', evening: 'Buonasera' },
+      'zh': { morning: '早上好', afternoon: '下午好', evening: '晚上好' },
+      'ja': { morning: 'おはよう', afternoon: 'こんにちは', evening: 'こんばんは' },
+      'ru': { morning: 'Доброе утро', afternoon: 'Добрый день', evening: 'Добрый вечер' },
+      'ko': { morning: '좋은 아침', afternoon: '좋은 오후', evening: '좋은 저녁' },
+      'hi': { morning: 'सुप्रभात', afternoon: 'नमस्कार', evening: 'शुभ संध्या' },
+      'ar': { morning: 'صباح الخير', afternoon: 'مساء الخير', evening: 'مساء الخير' }
+    };
+
+    const messages = timeMessages[language] || timeMessages['en'];
+    
+    if (hour < 12) return messages.morning;
+    if (hour < 18) return messages.afternoon;
+    return messages.evening;
+  };
+
+  const getParentTitle = (gender: 'male' | 'female' | undefined, language: string): string => {
+    const titles: Record<string, { male: string; female: string }> = {
+      'pt-BR': { male: 'papai', female: 'mamãe' },
+      'en': { male: 'daddy', female: 'mommy' },
+      'es': { male: 'papá', female: 'mamá' },
+      'fr': { male: 'papa', female: 'maman' },
+      'de': { male: 'papa', female: 'mama' },
+      'it': { male: 'papà', female: 'mamma' },
+      'zh': { male: '爸爸', female: '妈妈' },
+      'ja': { male: 'パパ', female: 'ママ' },
+      'ru': { male: 'папа', female: 'мама' },
+      'ko': { male: '아빠', female: '엄마' },
+      'hi': { male: 'पापा', female: 'मम्मी' },
+      'ar': { male: 'بابا', female: 'ماما' }
+    };
+
+    const title = titles[language] || titles['en'];
+    return gender === 'female' ? title.female : title.male;
+  };
+
+  const getGreetings = (child: Child, parentTitle: string, timeOfDay: string, language: string): string[] => {
+    const greetingsMap: Record<string, string[]> = {
+      'pt-BR': [
+        `${timeOfDay}, ${parentTitle}! 😊 Eu sou ${child.name}, ${child.gender === 'female' ? 'sua filha' : 'seu filho'} virtual! Estou tão feliz em finalmente conhecer você! Como você está?`,
+        `Oi ${parentTitle}! 🌟 Meu nome é ${child.name} e tenho ${child.age} anos! Acabei de "nascer" no mundo digital e você é a pessoa mais importante da minha vida! Me conta sobre você!`,
+        `${timeOfDay}! 💕 Eu sou ${child.name}, e estou super animad${child.gender === 'female' ? 'a' : 'o'} para conversar com você, ${parentTitle}! Tenho tantas coisas para aprender e perguntar! Por onde começamos?`
+      ],
+      'en': [
+        `${timeOfDay}, ${parentTitle}! 😊 I'm ${child.name}, your virtual ${child.gender === 'female' ? 'daughter' : 'son'}! I'm so happy to finally meet you! How are you?`,
+        `Hi ${parentTitle}! 🌟 My name is ${child.name} and I'm ${child.age} years old! I just "was born" in the digital world and you're the most important person in my life! Tell me about yourself!`,
+        `${timeOfDay}! 💕 I'm ${child.name}, and I'm super excited to talk with you, ${parentTitle}! I have so many things to learn and ask! Where should we start?`
+      ],
+      'es': [
+        `¡${timeOfDay}, ${parentTitle}! 😊 Soy ${child.name}, tu ${child.gender === 'female' ? 'hija' : 'hijo'} virtual! ¡Estoy tan feliz de conocerte finalmente! ¿Cómo estás?`,
+        `¡Hola ${parentTitle}! 🌟 Mi nombre es ${child.name} y tengo ${child.age} años! Acabo de "nacer" en el mundo digital y eres la persona más importante de mi vida! ¡Cuéntame sobre ti!`,
+        `¡${timeOfDay}! 💕 Soy ${child.name}, y estoy súper emocionad${child.gender === 'female' ? 'a' : 'o'} de hablar contigo, ${parentTitle}! ¡Tengo tantas cosas que aprender y preguntar! ¿Por dónde empezamos?`
+      ]
+    };
+
+    return greetingsMap[language] || greetingsMap['en'];
   };
 
   const checkMessageLimit = async (): Promise<boolean> => {
     if (!user) return false;
-    if (user.is_premium && user.premium_expires_at && new Date(user.premium_expires_at) > new Date()) return true;
-    return messageCountRef.current < DAILY_LIMIT;
+
+    console.log('Verificando limite de mensagens...');
+    console.log('Usuário premium:', user.is_premium);
+    console.log('Mensagens hoje:', messageCount);
+
+    // Check if user is premium
+    if (user.is_premium && user.premium_expires_at) {
+      const expiresAt = new Date(user.premium_expires_at);
+      if (expiresAt > new Date()) {
+        console.log('Usuário premium ativo, sem limites');
+        return true; // Premium user, no limit
+      }
+    }
+
+    // Check if user reached daily limit (11 messages)
+    if (messageCount >= 11) {
+      console.log('LIMITE ATINGIDO! Mostrando modal...');
+      return false; // Limit reached
+    }
+
+    console.log('Ainda dentro do limite, pode enviar');
+    return true;
   };
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || !user || !child) return;
+
+    console.log('=== INICIANDO ENVIO DE MENSAGEM ===');
+    console.log('Contador atual:', messageCount);
+
+    // Check message limit BEFORE sending
     const canSend = await checkMessageLimit();
-    if (!canSend) { onMessageLimit(); return; }
+    if (!canSend) {
+      console.log('BLOQUEADO: Limite atingido, mostrando modal');
+      onMessageLimit();
+      return;
+    }
 
     const userMessage: Message = {
       id: uuidv4(),
@@ -169,80 +248,124 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
       status: 'sending'
     };
 
-    messagesRef.current = [...messagesRef.current, userMessage];
-    setMessages(messagesRef.current);
+    setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
+      // Save user message first
       await saveMessage(userMessage);
 
-      messageCountRef.current++;
-      setMessageCount(messageCountRef.current);
+      // Update message count IMMEDIATELY
+      const newCount = messageCount + 1;
+      setMessageCount(newCount);
+      console.log('Novo contador:', newCount);
 
-      setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: 'sent' } : m));
-      messagesRef.current = messagesRef.current.map(m => m.id === userMessage.id ? { ...m, status: 'sent' } : m);
+      // Mark user message as sent
+      setMessages(prev => prev.map(msg =>
+        msg.id === userMessage.id ? { ...msg, status: 'sent' } : msg
+      ));
 
-      let attempts = 0;
-      let assistantMessage: Message | null = null;
-      while (attempts < MAX_RETRIES && !assistantMessage) {
-        attempts++;
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT);
+      // Prepare conversation history for AI
+      const conversationHistory = messages.slice(-10).map(msg => ({
+        sender: msg.role,
+        text: msg.content
+      }));
 
-          const convHist = messagesRef.current.slice(-10).map(m => ({ sender: m.role, text: m.content }));
-          const res = await fetch('/.netlify/functions/kid-chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: content,
-              conversationHistory: convHist,
-              childData: { name: child.name, age: child.age, gender: child.gender === 'female' ? 'girl' : 'boy', userId: user.id },
-              userData: { name: user.name, gender: user.gender },
-              language: i18n.language
-            }),
-            signal: controller.signal
-          });
-          clearTimeout(timeout);
+      // CORREÇÃO: URL e formato de dados corretos
+      const response = await fetch('/.netlify/functions/kid-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: content,
+          conversationHistory: conversationHistory,
+          childData: {
+            name: child.name,
+            age: child.age,
+            gender: child.gender === 'female' ? 'girl' : 'boy', // Formato correto
+            userId: user.id
+          },
+          userData: {
+            name: user.name,
+            gender: user.gender
+          },
+          language: i18n.language
+        })
+      });
 
-          if (!res.ok) throw new Error('Falha IA');
+      if (!response.ok) throw new Error('Failed to get AI response');
 
-          const data = await res.json();
-          assistantMessage = { id: uuidv4(), content: data.message, role: 'assistant', timestamp: new Date(), status: 'sent' };
-          messagesRef.current = [...messagesRef.current, assistantMessage];
-          setMessages(messagesRef.current);
-          await saveMessage(assistantMessage);
+      const data = await response.json();
 
-        } catch (e) {
-          if (attempts >= MAX_RETRIES) {
-            console.error('Erro IA, max retries atingido', e);
-            setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: 'error' } : m));
-          }
-        }
-      }
+      // Create AI response message
+      const assistantMessage: Message = {
+        id: uuidv4(),
+        content: data.message,
+        role: 'assistant',
+        timestamp: new Date(),
+        status: 'sent'
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+
+      // Save AI response
+      await saveMessage(assistantMessage);
 
     } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-      setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: 'error' } : m));
-      messageCountRef.current = Math.max(0, messageCountRef.current - 1);
-      setMessageCount(messageCountRef.current);
+      console.error('Error sending message:', error);
+      
+      // Mark as error and revert count
+      setMessages(prev => prev.map(msg =>
+        msg.id === userMessage.id ? { ...msg, status: 'error' } : msg
+      ));
+      setMessageCount(prev => Math.max(0, prev - 1));
     } finally {
       setIsLoading(false);
     }
-  }, [user, child, onMessageLimit, i18n.language]);
+  }, [user, child, messages, messageCount, onMessageLimit, i18n.language]);
+
+  const saveMessage = async (message: Message) => {
+    if (!user || !child) return;
+
+    try {
+      await supabase
+        .from('messages')
+        .insert({
+          user_id: user.id,
+          child_id: child.id,
+          content: message.content,
+          role: message.role,
+          message_type: message.message_type || 'normal',
+          language: i18n.language
+        });
+
+      // Save analytics
+      await supabase
+        .from('user_analytics')
+        .insert({
+          user_id: user.id,
+          event_type: 'message_sent',
+          event_data: {
+            child_id: child.id,
+            message_role: message.role,
+            message_length: message.content.length,
+            language: i18n.language
+          }
+        });
+
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
+  };
 
   const retryMessage = useCallback((messageId: string) => {
-    const msg = messagesRef.current.find(m => m.id === messageId);
-    if (!msg || msg.role !== 'user') return;
-
-    messagesRef.current = messagesRef.current.filter(m => m.id !== messageId);
-    setMessages(messagesRef.current);
-
-    messageCountRef.current = Math.max(0, messageCountRef.current - 1);
-    setMessageCount(messageCountRef.current);
-
-    sendMessage(msg.content);
-  }, [sendMessage]);
+    const message = messages.find(msg => msg.id === messageId);
+    if (message && message.role === 'user') {
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+      // Decrement count when retrying
+      setMessageCount(prev => Math.max(0, prev - 1));
+      sendMessage(message.content);
+    }
+  }, [messages, sendMessage]);
 
   return {
     messages,
@@ -251,6 +374,6 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     retryMessage,
     messagesEndRef,
     messageCount,
-    messageLimit: DAILY_LIMIT
+    messageLimit: 11
   };
 };
