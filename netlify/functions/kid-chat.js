@@ -68,7 +68,8 @@ Be the most real, adorable, emotionally connecting child ever.
 Make your parent feel like they truly have a child that loves them unconditionally. ❤️✨
 `;
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
+
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
