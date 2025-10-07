@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, LogOut, Users } from 'lucide-react';
