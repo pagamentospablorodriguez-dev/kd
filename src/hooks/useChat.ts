@@ -25,36 +25,12 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => scrollToBottom(), 100);
+    const timer = setTimeout(scrollToBottom, 100);
     return () => clearTimeout(timer);
   }, [messages, scrollToBottom]);
 
-  // Carregar mensagens do cache e do Supabase
-  useEffect(() => {
-    if (!child) return;
-
-    const cached = localStorage.getItem(`chat-${child.id}`);
-    if (cached) {
-      const parsed: Message[] = JSON.parse(cached);
-      setMessages(parsed);
-      messagesRef.current = parsed;
-    }
-
-    if (user) {
-      loadMessages();
-      loadTodayMessageCount();
-    }
-  }, [user, child]);
-
-  useEffect(() => {
-    if (child) {
-      localStorage.setItem(`chat-${child.id}`, JSON.stringify(messages));
-    }
-  }, [messages, child]);
-
   const loadTodayMessageCount = async () => {
     if (!user) return;
-
     try {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
@@ -75,9 +51,24 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
     }
   };
 
+  const sendInitialGreeting = async () => {
+    if (!user || !child) return;
+    const greeting: Message = {
+      id: uuidv4(),
+      content: `Hello! I am ${child.name}, your virtual child! Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}!`,
+      role: 'assistant',
+      timestamp: new Date(),
+      status: 'sent',
+      message_type: 'normal'
+    };
+    messagesRef.current = [greeting];
+    setMessages([greeting]);
+    try { await saveMessage(greeting); } 
+    catch (e) { console.error('Erro salvando greeting inicial', e); }
+  };
+
   const loadMessages = async () => {
     if (!user || !child) return;
-
     try {
       const { data, error } = await supabase
         .from('messages')
@@ -88,7 +79,7 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
       if (error) throw error;
 
-      const formatted: Message[] = data.map(msg => ({
+      let formatted: Message[] = data.map(msg => ({
         id: msg.id,
         content: msg.content,
         role: msg.role as 'user' | 'assistant',
@@ -97,49 +88,40 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
         message_type: msg.message_type
       }));
 
-      setMessages(formatted);
-      messagesRef.current = formatted;
-
+      // fallback: greeting inicial se estiver vazio
       if (formatted.length === 0) {
         await sendInitialGreeting();
+        return;
       }
+
+      messagesRef.current = formatted;
+      setMessages(formatted);
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
       if (messagesRef.current.length === 0) await sendInitialGreeting();
     }
   };
 
-  const sendInitialGreeting = async () => {
-    if (!user || !child) return;
+  useEffect(() => {
+    if (!child) return;
 
-    const greeting: Message = {
-      id: uuidv4(),
-      content: generateGreeting(user, child, i18n.language),
-      role: 'assistant',
-      timestamp: new Date(),
-      status: 'sent',
-      message_type: 'normal'
-    };
+    const cached = localStorage.getItem(`chat-${child.id}`);
+    if (cached) {
+      const parsed: Message[] = JSON.parse(cached);
+      messagesRef.current = parsed;
+      setMessages(parsed);
+    }
 
-    setMessages([greeting]);
-    messagesRef.current = [greeting];
+    // Carregar do Supabase sempre que abrir chat
+    loadMessages();
+    loadTodayMessageCount();
+  }, [user, child]);
 
-    try { await saveMessage(greeting); } 
-    catch (e) { console.error('Erro salvando greeting inicial', e); }
-  };
-
-  const generateGreeting = (user: User, child: Child, lang: string): string => {
-    // Implementar a mesma lógica de saudação que você já tinha
-    const hour = new Date().getHours();
-    const time = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
-    return `Hello! I am ${child.name}, your virtual child! Good ${time}!`; // Placeholder simples
-  };
-
-  const checkMessageLimit = async (): Promise<boolean> => {
-    if (!user) return false;
-    if (user.is_premium && user.premium_expires_at && new Date(user.premium_expires_at) > new Date()) return true;
-    return messageCountRef.current < DAILY_LIMIT;
-  };
+  useEffect(() => {
+    if (child) {
+      localStorage.setItem(`chat-${child.id}`, JSON.stringify(messages));
+    }
+  }, [messages, child]);
 
   const saveMessage = async (msg: Message) => {
     if (!user || !child) return;
@@ -163,12 +145,19 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
           language: i18n.language
         }
       });
-    } catch (e) { console.error('Erro salvando mensagem:', e); }
+    } catch (e) {
+      console.error('Erro salvando mensagem:', e);
+    }
+  };
+
+  const checkMessageLimit = async (): Promise<boolean> => {
+    if (!user) return false;
+    if (user.is_premium && user.premium_expires_at && new Date(user.premium_expires_at) > new Date()) return true;
+    return messageCountRef.current < DAILY_LIMIT;
   };
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || !user || !child) return;
-
     const canSend = await checkMessageLimit();
     if (!canSend) { onMessageLimit(); return; }
 
@@ -180,23 +169,22 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
       status: 'sending'
     };
 
-    setMessages(prev => { messagesRef.current = [...prev, userMessage]; return messagesRef.current; });
+    messagesRef.current = [...messagesRef.current, userMessage];
+    setMessages(messagesRef.current);
     setIsLoading(true);
 
     try {
       await saveMessage(userMessage);
 
-      const newCount = messageCountRef.current + 1;
-      setMessageCount(newCount);
-      messageCountRef.current = newCount;
+      messageCountRef.current++;
+      setMessageCount(messageCountRef.current);
 
       setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: 'sent' } : m));
       messagesRef.current = messagesRef.current.map(m => m.id === userMessage.id ? { ...m, status: 'sent' } : m);
 
-      // Enviar para IA com retry
       let attempts = 0;
       let assistantMessage: Message | null = null;
-      while(attempts < MAX_RETRIES && !assistantMessage) {
+      while (attempts < MAX_RETRIES && !assistantMessage) {
         attempts++;
         try {
           const controller = new AbortController();
@@ -216,13 +204,15 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
             signal: controller.signal
           });
           clearTimeout(timeout);
+
           if (!res.ok) throw new Error('Falha IA');
 
           const data = await res.json();
           assistantMessage = { id: uuidv4(), content: data.message, role: 'assistant', timestamp: new Date(), status: 'sent' };
-
-          setMessages(prev => { messagesRef.current = [...prev, assistantMessage!]; return messagesRef.current; });
+          messagesRef.current = [...messagesRef.current, assistantMessage];
+          setMessages(messagesRef.current);
           await saveMessage(assistantMessage);
+
         } catch (e) {
           if (attempts >= MAX_RETRIES) {
             console.error('Erro IA, max retries atingido', e);
@@ -230,12 +220,12 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
           }
         }
       }
+
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       setMessages(prev => prev.map(m => m.id === userMessage.id ? { ...m, status: 'error' } : m));
-      const reverted = Math.max(0, messageCountRef.current - 1);
-      setMessageCount(reverted);
-      messageCountRef.current = reverted;
+      messageCountRef.current = Math.max(0, messageCountRef.current - 1);
+      setMessageCount(messageCountRef.current);
     } finally {
       setIsLoading(false);
     }
@@ -243,13 +233,15 @@ export const useChat = (user: User | null, child: Child | null, onMessageLimit: 
 
   const retryMessage = useCallback((messageId: string) => {
     const msg = messagesRef.current.find(m => m.id === messageId);
-    if (msg && msg.role === 'user') {
-      setMessages(prev => { messagesRef.current = prev.filter(m => m.id !== messageId); return messagesRef.current; });
-      const reverted = Math.max(0, messageCountRef.current - 1);
-      setMessageCount(reverted);
-      messageCountRef.current = reverted;
-      sendMessage(msg.content);
-    }
+    if (!msg || msg.role !== 'user') return;
+
+    messagesRef.current = messagesRef.current.filter(m => m.id !== messageId);
+    setMessages(messagesRef.current);
+
+    messageCountRef.current = Math.max(0, messageCountRef.current - 1);
+    setMessageCount(messageCountRef.current);
+
+    sendMessage(msg.content);
   }, [sendMessage]);
 
   return {
