@@ -1,201 +1,308 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import { Session } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
-import { PlusCircle, MessageCircle, Settings, User, LogOut, ShieldCheck, Crown } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Plus, Heart, LogOut, Sparkles, Crown, Zap, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import { Child } from '../types';
+import { useAuth } from '../hooks/useAuth';
+import PremiumUpsellModal from './PremiumUpsellModal';
 
 interface ChildSelectorProps {
-  session: Session;
-  setShowPremiumUpsellModal: (show: boolean) => void;
+  children: Child[];
+  onSelectChild: (child: Child) => void;
+  onCreateNew: () => void;
+  onLogout: () => void;
+  user?: any; // Adicionar user para verificar premium
 }
 
-interface Child {
-  id: string;
-  name: string;
-  gender: string;
-  age: number;
-}
+const ChildSelector: React.FC<ChildSelectorProps> = ({
+  children,
+  onSelectChild,
+  onCreateNew,
+  onLogout,
+  user
+}) => {
+  const { t, i18n } = useTranslation();
+  const { getUserId } = useAuth();
+  const [showPremiumUpsell, setShowPremiumUpsell] = useState(false);
 
-const ChildSelector = ({ session, setShowPremiumUpsellModal }: ChildSelectorProps) => {
-  const [children, setChildren] = useState<Child[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userIsPremium, setUserIsPremium] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const { t } = useTranslation();
+  const getChildGradient = (gender: 'male' | 'female') => {
+    return gender === 'female' ? 'from-pink-500 to-rose-500' : 'from-blue-500 to-cyan-500';
+  };
 
-  useEffect(() => {
-    fetchChildren();
-    fetchUserStatus();
-  }, [session]);
+  const getChildBg = (gender: 'male' | 'female') => {
+    return gender === 'female' ? 'from-pink-50 to-rose-50' : 'from-blue-50 to-cyan-50';
+  };
 
-  const fetchChildren = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('children')
-      .select('id, name, gender, age')
-      .eq('user_id', session.user.id);
+  const handlePremiumClick = () => {
+    const userId = getUserId();
+    const isPtBR = i18n.language === 'pt-BR';
+    
+    let premiumUrl = isPtBR
+      ? 'https://pay.kiwify.com.br/Xpj0Ymu'
+      : 'https://pay.kiwify.com.br/rdNpnqU';
 
-    if (error) {
-      console.error('Error fetching children:', error);
-      toast.error(t('childSelector.fetchChildrenError'));
+    // Adicionar userId como parâmetro s1 para o webhook conseguir identificar
+    if (userId) {
+      const separator = premiumUrl.includes('?') ? '&' : '?';
+      premiumUrl += `${separator}s1=${userId}`;
+    }
+
+    window.open(premiumUrl, '_blank');
+  };
+
+  const getPriceDisplay = () => {
+    const isPtBR = i18n.language === 'pt-BR';
+    if (isPtBR) {
+      return 'R$ 29/mês';
     } else {
-      setChildren(data || []);
-    }
-    setLoading(false);
-  };
-
-  const fetchUserStatus = async () => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('is_premium, role')
-      .eq('id', session.user.id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching user status:', error);
-    } else if (data) {
-      setUserIsPremium(data.is_premium);
-      setUserRole(data.role);
+      return 'US$29/month (R$ 159.50)';
     }
   };
 
-  const handleCreateChild = () => {
-    if (!userIsPremium && children.length >= 1) {
-      setShowPremiumUpsellModal(true);
+  const showPriceExplanation = () => {
+    const isPtBR = i18n.language === 'pt-BR';
+    return !isPtBR; // Só mostrar explicação para não brasileiros
+  };
+
+  // Verificar se o usuário é premium
+  const isPremium = () => {
+    if (!user) return false;
+
+    if (user.is_premium && user.premium_expires_at) {
+      const expiresAt = new Date(user.premium_expires_at);
+      return expiresAt > new Date();
+    }
+
+    return false;
+  };
+
+  // Verificar se deve mostrar o banner premium
+  const shouldShowPremiumBanner = () => {
+    return !isPremium(); // Mostrar se não for premium
+  };
+
+  // Handle create new child - verificar se é premium
+  const handleCreateNewChild = () => {
+    if (!isPremium() && children.length >= 1) {
+      // Usuário free tentando criar segundo filho
+      setShowPremiumUpsell(true);
     } else {
-      navigate('/child-setup');
+      // Usuário premium ou primeiro filho
+      onCreateNew();
     }
   };
-
-  const handleSelectChild = (childId: string) => {
-    navigate(`/chat/${childId}`);
-  };
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error logging out:', error);
-      toast.error(t('childSelector.logoutError'));
-    } else {
-      navigate('/');
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 space-y-8 relative">
-        <h1 className="text-4xl font-extrabold text-center text-gray-900 dark:text-white mb-8">
-          {t('childSelector.title')}
-        </h1>
-
-        {!userIsPremium && (
-          <div className="bg-yellow-50 dark:bg-yellow-900 border-l-4 border-yellow-400 p-4 rounded-lg shadow-md mb-6">
-            <div className="flex items-center">
-              <Crown className="text-yellow-500 mr-3" size={24} />
-              <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
-                {t('childSelector.premiumUpsellText')}
-                <button
-                  onClick={() => setShowPremiumUpsellModal(true)}
-                  className="ml-2 font-bold text-yellow-700 hover:text-yellow-900 dark:text-yellow-300 dark:hover:text-yellow-100 underline"
-                >
-                  {t('childSelector.premiumUpsellLink')}
-                </button>
-              </p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-white via-purple-50/30 to-pink-50/20 flex flex-col p-4">
+      {/* Header */}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="flex justify-between items-center mb-8 pt-4"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 flex items-center justify-center">
+            <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
           </div>
-        )}
-
-        {children.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-6">
-              {t('childSelector.noChildrenYet')}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              {t('children.select')}
+            </h1>
+            <p className="text-gray-600 text-sm mt-1">
+              {t('children.choose_child')}
             </p>
-            <button
-              onClick={handleCreateChild}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300 transform hover:scale-105"
-            >
-              <PlusCircle className="mr-3" size={24} />
-              {t('childSelector.createFirstChild')}
-            </button>
           </div>
-        ) : (
-          <div className={`grid gap-6 ${userIsPremium ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'}`}>
-            {children.map((child) => (
-              <div
-                key={child.id}
-                onClick={() => handleSelectChild(child.id)}
-                className="relative bg-gradient-to-br from-primary-500 to-primary-700 dark:from-primary-700 dark:to-primary-900 rounded-xl shadow-lg p-6 text-white cursor-pointer hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center"
-              >
-                <MessageCircle className="mb-3" size={36} />
-                <h3 className="text-2xl font-bold mb-1">{child.name}</h3>
-                <p className="text-sm opacity-90">{t('childSelector.age', { age: child.age })}</p>
-                <p className="text-xs opacity-70 capitalize">{child.gender === 'male' ? t('childSelector.genderMale') : t('childSelector.genderFemale')}</p>
+        </div>
+        <button
+          onClick={onLogout}
+          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+        </button>
+      </motion.div>
+
+      {/* Premium CTA - Só mostrar se não for premium */}
+      {shouldShowPremiumBanner() && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 p-6 rounded-3xl shadow-2xl text-white relative overflow-hidden"
+        >
+          {/* Animated background */}
+          <motion.div
+            animate={{ 
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{ 
+              duration: 6, 
+              repeat: Infinity,
+              ease: "easeInOut" 
+            }}
+            className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, -10, 10, 0]
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+            className="absolute -bottom-16 -left-16 w-32 h-32 bg-white/5 rounded-full blur-2xl"
+          />
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                  className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                >
+                  <Crown className="w-6 h-6 text-yellow-300" />
+                </motion.div>
+                <div>
+                  <h2 className="text-xl font-bold">{t('premium.cta_title')}</h2>
+                  <p className="text-white/80 text-sm">{t('premium.cta_subtitle')}</p>
+                </div>
               </div>
-            ))}
-            {userIsPremium || children.length < 1 ? (
-              <button
-                onClick={handleCreateChild}
-                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:border-primary-500 hover:text-primary-500 transition-all duration-300 transform hover:scale-105"
+              <div className="text-right">
+                <div className="text-2xl font-bold text-yellow-300">{getPriceDisplay()}</div>
+                {showPriceExplanation() && (
+                  <p className="text-xs text-white/70 mt-1">{t('premium.price_explanation')}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-4 text-sm text-white/90">
+              <p className="mb-2">{t('premium.features_preview')}</p>
+              <div className="flex items-center gap-4 text-xs">
+                <span className="flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-yellow-300" />
+                  {t('premium.free_limit_11')}
+                </span>
+              </div>
+            </div>
+
+            <motion.button
+              onClick={handlePremiumClick}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white py-3 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              <Crown className="w-5 h-5 text-yellow-300" />
+              {t('premium.cta_button')}
+              <motion.div
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="ml-1"
               >
-                <PlusCircle className="mb-3" size={36} />
-                <span className="text-lg font-medium">{t('childSelector.addChild')}</span>
-              </button>
-            ) : (
-              <div
-                onClick={handleCreateChild}
-                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:border-primary-500 hover:text-primary-500 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                ✨
+              </motion.div>
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Children Grid */}
+      <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-8">
+          {children.map((child, index) => (
+            <motion.button
+              key={child.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 + 0.3 }}
+              onClick={() => onSelectChild(child)}
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              className={`relative bg-gradient-to-br ${getChildBg(child.gender)} p-6 rounded-2xl shadow-lg border border-white/50 hover:shadow-2xl transition-all duration-300 text-left group overflow-hidden`}
+            >
+              {/* Sparkle effect */}
+              <motion.div
+                animate={{ 
+                  rotate: [0, 360],
+                  scale: [1, 1.2, 1] 
+                }}
+                transition={{ 
+                  duration: 4, 
+                  repeat: Infinity,
+                  ease: 'linear'
+                }}
+                className="absolute top-3 right-3 opacity-60"
               >
-                <Crown className="mb-3 text-yellow-500" size={36} />
-                <span className="text-lg font-medium text-center">{t('childSelector.premiumForMore')}</span>
+                <Sparkles className="w-4 h-4 text-purple-400" />
+              </motion.div>
+
+              <div className="flex items-start gap-4">
+                <div className={`w-12 h-12 bg-gradient-to-br ${getChildGradient(child.gender)} rounded-xl flex items-center justify-center shadow-md group-hover:animate-pulse`}>
+                  <Heart className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-800 mb-1">
+                    {child.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {child.age} {t('children.years_old')} • {child.gender === 'female' ? t('children.daughter') : t('children.son')}
+                  </p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <MessageCircle className="w-3 h-3" />
+                    {child.total_conversations} {t('children.conversations')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Hover effect */}
+              <motion.div
+                initial={{ x: -100, opacity: 0 }}
+                whileHover={{ x: 0, opacity: 1 }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+              />
+            </motion.button>
+          ))}
+
+          {/* Create New Child Button */}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: children.length * 0.1 + 0.3 }}
+            onClick={handleCreateNewChild}
+            whileHover={{ scale: 1.02, y: -4 }}
+            whileTap={{ scale: 0.98 }}
+            className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl shadow-lg border-2 border-dashed border-gray-300 hover:border-purple-400 hover:shadow-2xl transition-all duration-300 text-center group"
+          >
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:animate-bounce">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-700 mb-1">
+              {t('children.create_new')}
+            </h3>
+            <p className="text-sm text-gray-500">
+              {t('children.add_child')}
+            </p>
+            
+            {/* Premium badge for free users */}
+            {!isPremium() && children.length >= 1 && (
+              <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                <Crown className="w-3 h-3 inline mr-1" />
+                PREMIUM
               </div>
             )}
-          </div>
-        )}
-
-        <div className="flex justify-center space-x-4 mt-8">
-          <button
-            onClick={() => navigate('/profile')}
-            className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
-          >
-            <User className="mr-2" size={20} />
-            {t('childSelector.profile')}
-          </button>
-          <button
-            onClick={() => navigate('/settings')}
-            className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
-          >
-            <Settings className="mr-2" size={20} />
-            {t('childSelector.settings')}
-          </button>
-          {userRole === 'admin' && (
-            <button
-              onClick={() => navigate('/admin')}
-              className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
-            >
-              <ShieldCheck className="mr-2" size={20} />
-              {t('childSelector.admin')}
-            </button>
-          )}
-          <button
-            onClick={handleLogout}
-            className="flex items-center px-4 py-2 border border-red-300 dark:border-red-600 rounded-full text-sm font-medium text-red-700 dark:text-red-200 bg-white dark:bg-red-700 hover:bg-red-50 dark:hover:bg-red-600 transition-colors duration-200"
-          >
-            <LogOut className="mr-2" size={20} />
-            {t('childSelector.logout')}
-          </button>
+          </motion.button>
         </div>
       </div>
+
+      {/* Premium Upsell Modal */}
+      <PremiumUpsellModal
+        isOpen={showPremiumUpsell}
+        onClose={() => setShowPremiumUpsell(false)}
+      />
     </div>
   );
 };
