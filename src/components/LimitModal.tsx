@@ -20,17 +20,10 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
   const heartColor = colorScheme === 'pink' ? 'text-pink-500' : 'text-blue-500';
   const glowClass = colorScheme === 'pink' ? 'shadow-pink-500/20' : 'shadow-blue-500/20';
 
-  useEffect(() => {
-    // 🔒 Impede o body de rolar enquanto o modal está aberto
-    if (isOpen) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
-
   const handlePremiumClick = () => {
     const userId = getUserId();
     const isPtBR = i18n.language === 'pt-BR';
-
+    
     let premiumUrl = isPtBR
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
       : 'https://pay.kiwify.com.br/rdNpnqU';
@@ -44,13 +37,41 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
     window.open(premiumUrl, '_blank');
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
+  const handleClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    onClose();
   };
 
-  const getPriceDisplay = () => (i18n.language === 'pt-BR' ? 'R$ 29/mês' : 'US$29/month');
-  const getPriceSubtext = () => (i18n.language !== 'pt-BR' ? '(R$ 159.50)' : '');
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+
+  const getPriceDisplay = () => {
+    return i18n.language === 'pt-BR' ? 'R$ 29/mês' : 'US$29/month';
+  };
+
+  const getPriceSubtext = () => {
+    return i18n.language === 'pt-BR' ? '' : '(R$ 159.50)';
+  };
+
   const showPriceExplanation = () => i18n.language !== 'pt-BR';
+
+  // ✅ Impede rolagem do fundo quando o modal está aberto
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   return (
     <AnimatePresence>
@@ -59,7 +80,7 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4"
           onClick={handleBackdropClick}
         >
           <motion.div
@@ -67,25 +88,27 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-md mx-auto my-4 relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 flex flex-col max-h-[90vh]"
+            className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-auto relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden flex flex-col max-h-[90vh]"
           >
-            {/* Botão de fechar fixo */}
+            {/* Botão X */}
             <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-2 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition"
+              onClick={handleClose}
+              className="absolute top-3 right-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors z-10 bg-white/80 backdrop-blur-sm shadow-sm"
+              type="button"
+              aria-label="Fechar modal"
             >
-              <X className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+              <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
             </button>
 
-            {/* Scroll interno separado */}
-            <div className="overflow-y-auto px-6 sm:px-8 py-8 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 rounded-3xl">
+            {/* Conteúdo scrollável */}
+            <div className="overflow-y-auto px-6 pb-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
               {/* Header */}
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+              <div className="text-center pt-8 pb-4">
+                <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
                   <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
                 </div>
 
-                <motion.h2
+                <motion.h2 
                   className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2"
                   animate={{ scale: [1, 1.02, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -103,13 +126,12 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
               </div>
 
               {/* Seção emocional */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-5 mb-6">
-                <p className="text-gray-700 dark:text-gray-300 text-center text-sm sm:text-base leading-relaxed mb-4">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 mb-4">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base text-center">
                   💕 {t('limit.description')}
                 </p>
 
-                {/* Contador visual */}
-                <div className="bg-white dark:bg-gray-600 rounded-lg p-3 border-l-4 border-orange-400">
+                <div className="mt-4 bg-white dark:bg-gray-600 rounded-lg p-3 border-l-4 border-orange-400">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-orange-500" />
@@ -125,65 +147,70 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
                 </div>
               </div>
 
-              {/* Seção Premium */}
-              <div className={`bg-gradient-to-r ${gradientClass} rounded-2xl p-5 text-white mb-6 relative overflow-hidden`}>
-                <motion.div
-                  animate={{ x: [-100, 300] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                />
-                <div className="relative z-10 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Crown className="w-5 h-5" />
+              {/* Seção premium */}
+              <div className={`bg-gradient-to-r ${gradientClass} rounded-xl p-4 text-white mb-4 relative overflow-hidden`}>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-center mb-2">
+                    <Crown className="w-5 h-5 mr-2" />
                     <span className="font-bold text-sm">PREMIUM</span>
                   </div>
-                  <div className="text-3xl font-black mb-1">{getPriceDisplay()}</div>
-                  {getPriceSubtext() && (
-                    <div className="text-sm opacity-90 mb-1">{getPriceSubtext()}</div>
-                  )}
-                  {showPriceExplanation() && (
-                    <p className="text-xs opacity-80">{t('limit.price_explanation')}</p>
-                  )}
+
+                  <div className="text-center mb-3">
+                    <div className="text-2xl sm:text-3xl font-black">{getPriceDisplay()}</div>
+                    {getPriceSubtext() && <div className="text-xs opacity-90">{getPriceSubtext()}</div>}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-1"><Infinity className="w-3 h-3" /><span>{t('limit.feature_unlimited')}</span></div>
+                    <div className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /><span>{t('limit.feature_proactive')}</span></div>
+                    <div className="flex items-center gap-1"><Star className="w-3 h-3" /><span>{t('limit.feature_memories')}</span></div>
+                    <div className="flex items-center gap-1"><Zap className="w-3 h-3" /><span>{t('limit.feature_evolution')}</span></div>
+                  </div>
                 </div>
 
-                {/* Features */}
-                <div className="grid grid-cols-2 gap-2 text-xs mt-4">
-                  <div className="flex items-center gap-1"><Infinity className="w-3 h-3" /><span>{t('limit.feature_unlimited')}</span></div>
-                  <div className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /><span>{t('limit.feature_proactive')}</span></div>
-                  <div className="flex items-center gap-1"><Star className="w-3 h-3" /><span>{t('limit.feature_memories')}</span></div>
-                  <div className="flex items-center gap-1"><Zap className="w-3 h-3" /><span>{t('limit.feature_evolution')}</span></div>
-                </div>
+                <motion.div
+                  animate={{ x: [-100, 300] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                />
               </div>
+
+              {showPriceExplanation() && (
+                <p className="text-xs text-gray-500 text-center mb-4">{t('limit.price_explanation')}</p>
+              )}
 
               {/* Botões */}
               <motion.button
                 onClick={handlePremiumClick}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`w-full py-4 bg-gradient-to-r ${gradientClass} text-white rounded-2xl font-black text-base shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 relative overflow-hidden ${glowClass} mb-3`}
+                className={`w-full py-4 bg-gradient-to-r ${gradientClass} text-white rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 relative overflow-hidden ${glowClass}`}
               >
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
                 >
-                  <Crown className="w-5 h-5 text-yellow-300" />
+                  <Crown className="w-5 h-5" />
                 </motion.div>
                 <span>🚀 {t('limit.premium')}</span>
               </motion.button>
 
               <motion.button
-                onClick={onClose}
+                onClick={handleClose}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full py-3 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                className="w-full mt-3 py-3 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 ⏰ {t('limit.tomorrow')}
               </motion.button>
 
-              {/* Segurança */}
-              <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <span className="text-xs text-gray-500">🔒 {t('limit.security.secure_payment')}</span>
-                <span className="text-xs text-gray-500">⚡ {t('limit.security.instant_activation')}</span>
+              {/* Rodapé */}
+              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                  <span>🔒 {t('limit.security.secure_payment')}</span>
+                  <span>❤️ {t('limit.security.no_commitment')}</span>
+                  <span>⚡ {t('limit.security.instant_activation')}</span>
+                </div>
               </div>
             </div>
           </motion.div>
