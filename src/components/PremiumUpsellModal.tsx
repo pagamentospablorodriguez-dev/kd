@@ -11,10 +11,9 @@ interface PremiumUpsellModalProps {
 
 const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose }) => {
   const { t, i18n } = useTranslation();
-  const { getUserId } = useAuth();
+  const { getUserId, user } = useAuth();
 
   useEffect(() => {
-    // 🔒 Impede o body de rolar quando o modal está aberto
     if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
     return () => { document.body.style.overflow = ''; };
@@ -22,15 +21,24 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
 
   const handlePremiumClick = () => {
     const userId = getUserId();
+    const userEmail = user?.email;
     const isPtBR = i18n.language === 'pt-BR';
-    let premiumUrl = isPtBR
-      ? 'https://pay.kiwify.com.br/Xpj0Ymu'
-      : 'https://pay.kiwify.com.br/rdNpnqU';
-    if (userId) {
-      const separator = premiumUrl.includes('?') ? '&' : '?';
-      premiumUrl += `${separator}s1=${userId}`;
-      console.log('🔗 Premium URL with tracking:', premiumUrl);
+
+    let premiumUrl = '';
+    if (isPtBR) {
+      premiumUrl = 'https://pay.kiwify.com.br/Xpj0Ymu';
+      if (userId) {
+        const separator = premiumUrl.includes('?') ? '&' : '?';
+        premiumUrl += `${separator}s1=${userId}&email=${userEmail || ''}`;
+      }
+    } else {
+      premiumUrl = 'https://buy.stripe.com/bJeeVd2R3arEbZh2jZb7y00';
+      if (userId || userEmail) {
+        const separator = premiumUrl.includes('?') ? '&' : '?';
+        premiumUrl += `${separator}client_reference_id=${userId || ''}&prefilled_email=${userEmail || ''}`;
+      }
     }
+
     window.open(premiumUrl, '_blank');
   };
 
@@ -39,8 +47,6 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
   };
 
   const getPriceDisplay = () => (i18n.language === 'pt-BR' ? 'R$ 29/mês' : 'US$29/month');
-  const getPriceSubtext = () => (i18n.language !== 'pt-BR' ? '(R$ 159.50)' : '');
-  const showPriceExplanation = () => i18n.language !== 'pt-BR';
 
   return (
     <AnimatePresence>
@@ -59,7 +65,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg mx-auto my-4 relative shadow-2xl border border-gray-200/50 dark:border-gray-700/50 flex flex-col max-h-[90vh]"
           >
-            {/* Botão de fechar fixo */}
+            {/* Close button */}
             <button
               onClick={onClose}
               className="absolute top-4 right-4 z-10 p-2 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition"
@@ -67,7 +73,6 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
               <X className="w-4 h-4 text-gray-700 dark:text-gray-200" />
             </button>
 
-            {/* Scroll interno separado */}
             <div className="overflow-y-auto px-6 sm:px-8 py-8 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 rounded-3xl">
               {/* Header */}
               <div className="text-center mb-8">
@@ -106,12 +111,6 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
                     <Star className="w-5 h-5 text-yellow-300" />
                   </div>
                   <div className="text-4xl font-black mb-1">{getPriceDisplay()}</div>
-                  {getPriceSubtext() && (
-                    <div className="text-sm opacity-90 mb-2">{getPriceSubtext()}</div>
-                  )}
-                  {showPriceExplanation() && (
-                    <p className="text-xs opacity-80">{t('premium.price_explanation')}</p>
-                  )}
                 </div>
               </div>
 
