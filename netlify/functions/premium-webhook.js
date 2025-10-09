@@ -306,7 +306,7 @@ try {
       if (evType === 'invoice.payment_succeeded' || evType === 'invoice.paid') {
 
         // FORÇA USER PARA TESTE
-const targetUserId = 'f9b81cd3-4c8e-4b27-bbf1-46642c70b121';
+let targetUserId = 'f9b81cd3-4c8e-4b27-bbf1-46642c70b121';
 
         
         const invoice = obj;
