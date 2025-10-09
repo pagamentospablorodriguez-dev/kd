@@ -7,11 +7,12 @@ import { useAuth } from '../hooks/useAuth';
 interface PremiumUpsellModalProps {
   isOpen: boolean;
   onClose: () => void;
+  user?: any;
 }
 
-const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose }) => {
+const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose, user }) => {
   const { t, i18n } = useTranslation();
-  const { getUserId, user } = useAuth();
+  const { getUserId } = useAuth();
 
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
@@ -24,29 +25,36 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
     const userEmail = user?.email;
     const isPtBR = i18n.language === 'pt-BR';
 
-    let premiumUrl = '';
-    if (isPtBR) {
-      premiumUrl = 'https://pay.kiwify.com.br/Xpj0Ymu';
-      if (userId) {
-        const separator = premiumUrl.includes('?') ? '&' : '?';
-        premiumUrl += `${separator}s1=${userId}&email=${userEmail || ''}`;
+    let premiumUrl = isPtBR
+      ? 'https://pay.kiwify.com.br/Xpj0Ymu'
+      : 'https://buy.stripe.com/bJeeVd2R3arEbZh2jZb7y00';
+
+    // Adiciona parâmetros de tracking
+    if (userId || userEmail) {
+      const separator = premiumUrl.includes('?') ? '&' : '?';
+      const params = new URLSearchParams();
+      if (isPtBR) {
+        if (userId) params.append('s1', userId);
+      } else {
+        if (userId) params.append('client_reference_id', userId);
+        if (userEmail) params.append('prefilled_email', userEmail);
       }
-    } else {
-      premiumUrl = 'https://buy.stripe.com/bJeeVd2R3arEbZh2jZb7y00';
-      if (userId || userEmail) {
-        const separator = premiumUrl.includes('?') ? '&' : '?';
-        premiumUrl += `${separator}client_reference_id=${userId || ''}&prefilled_email=${userEmail || ''}`;
-      }
+      premiumUrl += `${separator}${params.toString()}`;
     }
 
     window.open(premiumUrl, '_blank');
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
   const getPriceDisplay = () => (i18n.language === 'pt-BR' ? 'R$ 29/mês' : 'US$29/month');
+
+  const features = [
+    { icon: <Baby />, text: t('premium.upsell.feature1'), color: 'from-purple-500 to-pink-500' },
+    { icon: <MessageCircle />, text: t('premium.upsell.feature2'), color: 'from-blue-500 to-cyan-500' },
+    { icon: <Zap />, text: t('premium.upsell.feature3'), color: 'from-green-500 to-emerald-500' },
+    { icon: <Heart />, text: t('premium.upsell.feature4'), color: 'from-orange-500 to-red-500' },
+    { icon: <Sparkles />, text: t('premium.upsell.feature5'), color: 'from-yellow-500 to-amber-500' },
+    { icon: <Star />, text: t('premium.upsell.feature6'), color: 'from-rose-500 to-pink-500' },
+  ];
 
   return (
     <AnimatePresence>
@@ -56,7 +64,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4"
-          onClick={handleBackdropClick}
+          onClick={(e) => e.target === e.currentTarget && onClose()}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -116,14 +124,7 @@ const PremiumUpsellModal: React.FC<PremiumUpsellModalProps> = ({ isOpen, onClose
 
               {/* Features Grid */}
               <div className="grid grid-cols-2 gap-3 mb-6">
-                {[
-                  { icon: <Baby />, text: t('premium.upsell.feature1'), color: 'from-purple-500 to-pink-500' },
-                  { icon: <MessageCircle />, text: t('premium.upsell.feature2'), color: 'from-blue-500 to-cyan-500' },
-                  { icon: <Zap />, text: t('premium.upsell.feature3'), color: 'from-green-500 to-emerald-500' },
-                  { icon: <Heart />, text: t('premium.upsell.feature4'), color: 'from-orange-500 to-red-500' },
-                  { icon: <Sparkles />, text: t('premium.upsell.feature5'), color: 'from-yellow-500 to-amber-500' },
-                  { icon: <Star />, text: t('premium.upsell.feature6'), color: 'from-rose-500 to-pink-500' },
-                ].map((f, i) => (
+                {features.map((f, i) => (
                   <div
                     key={i}
                     className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50"
