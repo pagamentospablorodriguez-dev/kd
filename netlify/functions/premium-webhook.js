@@ -158,24 +158,18 @@ exports.handler = async (event, context) => {
         rawBody = JSON.stringify(event.body);
       }
 
+      let stripeEvent;
+      try {
+        stripeEvent = Stripe.webhooks.constructEvent(rawBody, stripeSigHeader, process.env.STRIPE_WEBHOOK_SECRET);
+      } catch (sigErr) {
+        console.error('❌ Stripe signature verification failed:', sigErr.message);
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Stripe signature verification failed', details: sigErr.message })
+        };
+      }
 
-
-
-
-      
-   let stripeEvent;
-try {
-  // Temporário para testes:
-  stripeEvent = JSON.parse(rawBody); // ao invés de constructEvent
-  console.log('⚡ Stripe event processed WITHOUT signature check');
-} catch (err) {
-  console.error(err);
-  return { statusCode: 400, body: 'Invalid JSON' };
-}
-
-
-
-      
       console.log('Stripe event type:', stripeEvent.type);
 
       // Initialize supabase client only if needed
@@ -305,10 +299,6 @@ try {
       // invoice.payment_succeeded or invoice.paid => recurring payment succeeded (extend expiration)
       if (evType === 'invoice.payment_succeeded' || evType === 'invoice.paid') {
 
-        // FORÇA USER PARA TESTE
-let targetUserId = 'f9b81cd3-4c8e-4b27-bbf1-46642c70b121';
-
-        
         const invoice = obj;
         console.log('Invoice event:', { id: invoice.id, subscription: invoice.subscription, billing_reason: invoice.billing_reason });
         subscriptionId = invoice.subscription || null;
