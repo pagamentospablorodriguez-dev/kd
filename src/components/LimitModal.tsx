@@ -13,27 +13,37 @@ interface LimitModalProps {
 
 const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, childGender }) => {
   const { t, i18n } = useTranslation();
-  const { getUserId } = useAuth();
+  const { getUserId, user } = useAuth();
 
   const colorScheme = childGender === 'female' ? 'pink' : 'blue';
-  const gradientClass = colorScheme === 'pink' ? 'from-pink-500 to-rose-500' : 'from-blue-500 to-cyan-500';
+  const gradientClass =
+    colorScheme === 'pink' ? 'from-pink-500 to-rose-500' : 'from-blue-500 to-cyan-500';
   const heartColor = colorScheme === 'pink' ? 'text-pink-500' : 'text-blue-500';
   const glowClass = colorScheme === 'pink' ? 'shadow-pink-500/20' : 'shadow-blue-500/20';
 
   const handlePremiumClick = () => {
     const userId = getUserId();
+    const userEmail = user?.email || '';
     const isPtBR = i18n.language === 'pt-BR';
-    
+
     let premiumUrl = isPtBR
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
-      : 'https://pay.kiwify.com.br/rdNpnqU';
+      : 'https://buy.stripe.com/bJeeVd2R3arEbZh2jZb7y00';
 
-    if (userId) {
-      const separator = premiumUrl.includes('?') ? '&' : '?';
-      premiumUrl += `${separator}s1=${userId}`;
-      console.log('🔗 LimitModal: Premium URL with tracking:', premiumUrl);
+    // Adiciona parâmetros de rastreamento para ambos os casos
+    const separator = premiumUrl.includes('?') ? '&' : '?';
+    if (isPtBR) {
+      // Kiwify: mantém o s1 original
+      if (userId) premiumUrl += `${separator}s1=${userId}`;
+    } else {
+      // Stripe: envia client_reference_id e email
+      const params = new URLSearchParams();
+      if (userId) params.append('client_reference_id', userId);
+      if (userEmail) params.append('prefilled_email', userEmail);
+      premiumUrl += `${separator}${params.toString()}`;
     }
 
+    console.log('🔗 LimitModal: Premium URL with tracking:', premiumUrl);
     window.open(premiumUrl, '_blank');
   };
 
@@ -52,14 +62,8 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
   };
 
   const getPriceDisplay = () => {
-    return i18n.language === 'pt-BR' ? 'R$ 29/mês' : 'US$29/month';
+    return i18n.language === 'pt-BR' ? 'R$ 29/mês' : '$29/month';
   };
-
-  const getPriceSubtext = () => {
-    return i18n.language === 'pt-BR' ? '' : '(R$ 159.50)';
-  };
-
-  const showPriceExplanation = () => i18n.language !== 'pt-BR';
 
   // ✅ Impede rolagem do fundo quando o modal está aberto
   useEffect(() => {
@@ -108,7 +112,7 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
                   <img src="/ninna.png" alt="Ninna" className="w-full h-full object-contain" />
                 </div>
 
-                <motion.h2 
+                <motion.h2
                   className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2"
                   animate={{ scale: [1, 1.02, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -148,7 +152,9 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
               </div>
 
               {/* Seção premium */}
-              <div className={`bg-gradient-to-r ${gradientClass} rounded-xl p-4 text-white mb-4 relative overflow-hidden`}>
+              <div
+                className={`bg-gradient-to-r ${gradientClass} rounded-xl p-4 text-white mb-4 relative overflow-hidden`}
+              >
                 <div className="relative z-10">
                   <div className="flex items-center justify-center mb-2">
                     <Crown className="w-5 h-5 mr-2" />
@@ -157,14 +163,25 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
 
                   <div className="text-center mb-3">
                     <div className="text-2xl sm:text-3xl font-black">{getPriceDisplay()}</div>
-                    {getPriceSubtext() && <div className="text-xs opacity-90">{getPriceSubtext()}</div>}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex items-center gap-1"><Infinity className="w-3 h-3" /><span>{t('limit.feature_unlimited')}</span></div>
-                    <div className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /><span>{t('limit.feature_proactive')}</span></div>
-                    <div className="flex items-center gap-1"><Star className="w-3 h-3" /><span>{t('limit.feature_memories')}</span></div>
-                    <div className="flex items-center gap-1"><Zap className="w-3 h-3" /><span>{t('limit.feature_evolution')}</span></div>
+                    <div className="flex items-center gap-1">
+                      <Infinity className="w-3 h-3" />
+                      <span>{t('limit.feature_unlimited')}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MessageCircle className="w-3 h-3" />
+                      <span>{t('limit.feature_proactive')}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3 h-3" />
+                      <span>{t('limit.feature_memories')}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Zap className="w-3 h-3" />
+                      <span>{t('limit.feature_evolution')}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -174,10 +191,6 @@ const LimitModal: React.FC<LimitModalProps> = ({ isOpen, onClose, childName, chi
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
                 />
               </div>
-
-              {showPriceExplanation() && (
-                <p className="text-xs text-gray-500 text-center mb-4">{t('limit.price_explanation')}</p>
-              )}
 
               {/* Botões */}
               <motion.button
