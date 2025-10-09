@@ -3,6 +3,16 @@
 // Atualizado para tratar checkout.session.completed, invoice.payment_succeeded, subscription events, e fallback Kiwify.
 // Copie/cole direto e faça deploy.
 
+// 🔧 Necessário para Stripe signature funcionar no Netlify
+exports.config = {
+  event: {
+    body: {
+      raw: true,
+    },
+  },
+};
+
+
 exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
