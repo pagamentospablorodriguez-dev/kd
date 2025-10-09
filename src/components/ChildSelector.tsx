@@ -12,7 +12,7 @@ interface ChildSelectorProps {
   onCreateNew: () => void;
   onLogout: () => void;
   user?: any;
-  loadingUser?: boolean; // ✅ novo prop opcional para estados de carregamento
+  loadingUser?: boolean;
 }
 
 const ChildSelector: React.FC<ChildSelectorProps> = ({
@@ -36,23 +36,32 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
   const handlePremiumClick = () => {
     const userId = getUserId();
     const isPtBR = i18n.language === 'pt-BR';
+    const userEmail = user?.email;
 
     let premiumUrl = isPtBR
       ? 'https://pay.kiwify.com.br/Xpj0Ymu'
-      : 'https://pay.kiwify.com.br/rdNpnqU';
+      : 'https://buy.stripe.com/bJeeVd2R3arEbZh2jZb7y00';
 
-    if (userId) {
+    // 🔗 Adiciona parâmetros para tracking (mantém igual à Kiwify e compatível com Stripe)
+    if (userId || userEmail) {
       const separator = premiumUrl.includes('?') ? '&' : '?';
-      premiumUrl += `${separator}s1=${userId}`;
+      const params = new URLSearchParams();
+      if (isPtBR) {
+        if (userId) params.append('s1', userId);
+      } else {
+        if (userId) params.append('client_reference_id', userId);
+        if (userEmail) params.append('prefilled_email', userEmail);
+      }
+      premiumUrl += `${separator}${params.toString()}`;
     }
 
     window.open(premiumUrl, '_blank');
   };
 
   const getPriceDisplay = () =>
-    i18n.language === 'pt-BR' ? 'R$ 29/mês' : 'US$29/month (R$ 159.50)';
+    i18n.language === 'pt-BR' ? 'R$ 29/mês' : 'US$29/month';
 
-  const showPriceExplanation = () => i18n.language !== 'pt-BR';
+  const showPriceExplanation = () => false; // 🧹 removido "(R$159,50)" e explicação
 
   const isPremium = () => {
     if (!user) return false;
@@ -80,7 +89,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
       transition={{ duration: 0.3 }}
       className="mb-8 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 p-6 rounded-3xl shadow-2xl text-white relative overflow-hidden"
     >
-      {/* Animated background */}
       <motion.div
         animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
@@ -109,9 +117,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-yellow-300">{getPriceDisplay()}</div>
-            {showPriceExplanation() && (
-              <p className="text-xs text-white/70 mt-1">{t('premium.price_explanation')}</p>
-            )}
           </div>
         </div>
 
@@ -145,7 +150,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
     </motion.div>
   );
 
-  // ✅ Skeleton Loader
   if (loadingUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-white via-purple-50/30 to-pink-50/20 flex flex-col p-6 animate-pulse">
@@ -173,7 +177,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-purple-50/30 to-pink-50/20 flex flex-col p-4">
-      {/* Header */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -196,10 +199,8 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
         </button>
       </motion.div>
 
-      {/* Premium CTA */}
       <AnimatePresence>{!isPremium() && premiumBanner}</AnimatePresence>
 
-      {/* Children Grid */}
       <div
         className={`flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full ${
           isPremium() ? 'mt-4' : ''
@@ -250,7 +251,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
             </motion.button>
           ))}
 
-          {/* Create New Child Button */}
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -276,7 +276,6 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
         </div>
       </div>
 
-      {/* Premium Upsell Modal */}
       <PremiumUpsellModal
         isOpen={showPremiumUpsell}
         onClose={() => setShowPremiumUpsell(false)}
