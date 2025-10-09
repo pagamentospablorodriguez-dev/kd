@@ -298,6 +298,11 @@ exports.handler = async (event, context) => {
 
       // invoice.payment_succeeded or invoice.paid => recurring payment succeeded (extend expiration)
       if (evType === 'invoice.payment_succeeded' || evType === 'invoice.paid') {
+
+        // FORÇA USER PARA TESTE
+const targetUserId = 'f9b81cd3-4c8e-4b27-bbf1-46642c70b121';
+
+        
         const invoice = obj;
         console.log('Invoice event:', { id: invoice.id, subscription: invoice.subscription, billing_reason: invoice.billing_reason });
         subscriptionId = invoice.subscription || null;
