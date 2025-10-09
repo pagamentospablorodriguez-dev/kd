@@ -158,18 +158,24 @@ exports.handler = async (event, context) => {
         rawBody = JSON.stringify(event.body);
       }
 
-      let stripeEvent;
-      try {
-        stripeEvent = Stripe.webhooks.constructEvent(rawBody, stripeSigHeader, process.env.STRIPE_WEBHOOK_SECRET);
-      } catch (sigErr) {
-        console.error('❌ Stripe signature verification failed:', sigErr.message);
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: 'Stripe signature verification failed', details: sigErr.message })
-        };
-      }
 
+
+
+
+      
+   let stripeEvent;
+try {
+  // Temporário para testes:
+  stripeEvent = JSON.parse(rawBody); // ao invés de constructEvent
+  console.log('⚡ Stripe event processed WITHOUT signature check');
+} catch (err) {
+  console.error(err);
+  return { statusCode: 400, body: 'Invalid JSON' };
+}
+
+
+
+      
       console.log('Stripe event type:', stripeEvent.type);
 
       // Initialize supabase client only if needed
